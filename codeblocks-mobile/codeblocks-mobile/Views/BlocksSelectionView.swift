@@ -2,7 +2,6 @@ import SwiftUI
 
 struct BlocksSelectionView: View {
     @Binding var selectedBlocks: [BlockModel]
-    private let repository = BlockRepository()
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -12,7 +11,7 @@ struct BlocksSelectionView: View {
             
             List {
                 Section(header: Text("Условия").font(.headline)) {
-                    ForEach(repository.getConditions()) { block in
+                    ForEach(BlockRepository.conditions) { block in
                         HStack {
                             Text(block.name)
                                 .foregroundColor(block.color)
@@ -29,7 +28,7 @@ struct BlocksSelectionView: View {
                 }
                 
                 Section(header: Text("Циклы").font(.headline)) {
-                    ForEach(repository.getCycles()) { block in
+                    ForEach(BlockRepository.cycles) { block in
                         HStack {
                             Text(block.name)
                                 .foregroundColor(block.color)
@@ -46,7 +45,7 @@ struct BlocksSelectionView: View {
                 }
                 
                 Section(header: Text("Взаимодействия").font(.headline)) {
-                    ForEach(repository.getInteractions()) { block in
+                    ForEach(BlockRepository.interactions) { block in
                         HStack {
                             Text(block.name)
                                 .foregroundColor(block.color)
