@@ -9,23 +9,24 @@ struct CodeBlocksView: View {
                 .font(.title)
                 .padding()
             
-            ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(selectedBlocks) { block in
-                        BlockView(
-                            block: block
-                        )
-                    }
+            List {
+                ForEach(selectedBlocks) { block in
+                    BlockView(block: block)
                 }
-                .padding(.horizontal)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
+                .onMove(perform: move)
+                .onDelete(perform: delete)
             }
-            .frame(minHeight: 300)
-            
-            Spacer()
+            .environment(\.editMode, .constant(.active))
         }
         .navigationTitle("Программа")
+    }
+    
+    func move(from source: IndexSet, to destination: Int) {
+        selectedBlocks.move(fromOffsets: source, toOffset: destination)
+    }
+    
+    func delete(at offsets: IndexSet) {
+            selectedBlocks.remove(atOffsets: offsets)
     }
 }
 
@@ -35,7 +36,6 @@ struct CodeBlocksView_Previews: PreviewProvider {
             CodeBlocksView(selectedBlocks: .constant([
                 BlockModel(name: "while", type: .whileCase, color: .yellow),
                 BlockModel(name: "for", type: .forCase, color: .yellow)
-                
             ]))
         }
     }

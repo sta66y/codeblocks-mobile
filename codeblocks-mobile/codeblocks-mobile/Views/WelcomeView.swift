@@ -7,6 +7,9 @@ struct WelcomeView: View {
                 Text("Добро пожаловать в CodeBlocks!")
                     .font(.largeTitle)
                     .padding()
+                    .onAppear {
+                        print("WelcomeView appeared")
+                    }
                 NavigationLink(destination: MainTabView()) {
                     Text("Начать")
                         .padding()
@@ -19,6 +22,7 @@ struct WelcomeView: View {
         }
     }
 }
+
 
 struct WelcomeView_Previews: PreviewProvider {
     static var previews: some View {
