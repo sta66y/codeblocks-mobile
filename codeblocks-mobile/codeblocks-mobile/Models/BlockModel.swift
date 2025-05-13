@@ -6,6 +6,7 @@ struct BlockModel: Identifiable {
     let name: String
     let type: BlockType
     let color: Color
+    var children: [BlockModel] = []
     
     enum BlockType {
         case ifCase

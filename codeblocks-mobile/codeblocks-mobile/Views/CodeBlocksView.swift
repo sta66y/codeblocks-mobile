@@ -26,7 +26,7 @@ struct CodeBlocksView: View {
     }
     
     func delete(at offsets: IndexSet) {
-            selectedBlocks.remove(atOffsets: offsets)
+        selectedBlocks.remove(atOffsets: offsets)
     }
 }
 
