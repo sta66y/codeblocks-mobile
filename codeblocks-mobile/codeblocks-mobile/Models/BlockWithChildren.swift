@@ -7,7 +7,7 @@ struct BlockWithChildren: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                BlockView(block: block)
+                BlockView(block: $block)
                 Button(action: {
                     showingBlockSelection = true
                 }) {
