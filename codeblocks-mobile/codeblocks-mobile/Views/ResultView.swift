@@ -1,10 +1,3 @@
-//
-//  ResultView.swift
-//  mobileAlg
-//
-//  Created by Hitsenok on 02.05.2025.
-//
-
 import SwiftUI
 
 struct ResultView: View {

@@ -5,11 +5,6 @@ struct MainTabView: View {
     
     var body: some View {
         TabView {
-            BlocksSelectionView(selectedBlocks: $selectedBlocks)
-                .tabItem {
-                    Label("Блоки", systemImage: "square.grid.2x2")
-                }
-            
             CodeBlocksView(selectedBlocks: $selectedBlocks)
                 .tabItem {
                     Label("Программа", systemImage: "list.bullet")

@@ -2,23 +2,54 @@ import SwiftUI
 
 struct CodeBlocksView: View {
     @Binding var selectedBlocks: [BlockModel]
+    @State private var showingBlockSelection = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Ваша программа")
-                .font(.title)
-                .padding()
-            
-            List {
-                ForEach(selectedBlocks) { block in
-                    BlockView(block: block)
+        ZStack {
+            VStack(alignment: .leading, spacing: 20) {
+                Text("Ваша программа")
+                    .font(.title)
+                    .padding()
+                
+                List {
+                    ForEach($selectedBlocks) { $block in
+                        BlockWithChildren(block: $block)
+                    }
+                    .onMove(perform: move)
+                    .onDelete(perform: delete)
                 }
-                .onMove(perform: move)
-                .onDelete(perform: delete)
+                .environment(\.editMode, .constant(.active))
             }
-            .environment(\.editMode, .constant(.active))
+            .navigationTitle("Программа")
+            
+            // плюсик
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        showingBlockSelection = true
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.title)
+                            .padding()
+                            .background(Color.green)
+                            .foregroundColor(.white)
+                            .clipShape(Circle())
+                            .shadow(radius: 5)
+                    }
+                    .padding()
+                }
+            }
         }
-        .navigationTitle("Программа")
+        .sheet(isPresented: $showingBlockSelection) {
+            BlockSelectionSheet(onSelect: { selectedBlock in
+                if !selectedBlock.name.isEmpty {
+                    selectedBlocks.append(selectedBlock)
+                }
+                showingBlockSelection = false
+            })
+        }
     }
     
     func move(from source: IndexSet, to destination: Int) {
@@ -34,7 +65,15 @@ struct CodeBlocksView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
             CodeBlocksView(selectedBlocks: .constant([
-                BlockModel(name: "while", type: .whileCase, color: .yellow),
+                BlockModel(
+                    name: "while",
+                    type: .whileCase,
+                    color: .yellow,
+                    children: [
+                        BlockModel(name: "print", type: .printCase, color: .green),
+                        BlockModel(name: "if", type: .ifCase, color: .red)
+                    ]
+                ),
                 BlockModel(name: "for", type: .forCase, color: .yellow)
             ]))
         }
