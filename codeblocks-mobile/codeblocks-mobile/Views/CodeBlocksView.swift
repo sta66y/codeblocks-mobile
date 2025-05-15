@@ -44,9 +44,7 @@ struct CodeBlocksView: View {
         }
         .sheet(isPresented: $showingBlockSelection) {
             BlockSelectionSheet(onSelect: { selectedBlock in
-                if !selectedBlock.name.isEmpty {
-                    selectedBlocks.append(selectedBlock)
-                }
+                BlockRepository.addBlock(selectedBlock, to: &selectedBlocks)
                 showingBlockSelection = false
             })
         }

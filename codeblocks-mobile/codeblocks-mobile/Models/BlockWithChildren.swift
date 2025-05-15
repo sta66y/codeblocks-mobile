@@ -17,10 +17,7 @@ struct BlockWithChildren: View {
             }
             .sheet(isPresented: $showingBlockSelection) {
                 BlockSelectionSheet(onSelect: { selectedBlock in
-                    if !selectedBlock.name.isEmpty {
-                        block.children.append(selectedBlock)
-                        print("Добавлен блок: \(selectedBlock.name) в children блока: \(block.name)")
-                    }
+                    BlockRepository.addBlock(selectedBlock, toChildrenOf: &block)
                     showingBlockSelection = false
                 })
             }

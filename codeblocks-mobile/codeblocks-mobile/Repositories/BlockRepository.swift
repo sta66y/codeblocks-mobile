@@ -1,6 +1,20 @@
 import SwiftUI
 
 enum BlockRepository {
+    static func addBlock(_ block: BlockModel, to blocks: inout [BlockModel]) {
+            if !block.name.isEmpty {
+                blocks.append(block)
+                print("Добавлен блок: \(block.name)")
+            }
+        }
+        
+    static func addBlock(_ block: BlockModel, toChildrenOf parentBlock: inout BlockModel) {
+        if !block.name.isEmpty {
+            parentBlock.children.append(block)
+            print("Добавлен блок: \(block.name) в children блока: \(parentBlock.name)")
+        }
+    }
+    
     static let variables: [BlockModel] = [
         BlockModel(name: "Объявить переменные", type: .declareVars, color: .blue),
         BlockModel(name: "Присвоить", type: .assign, color: .purple)
