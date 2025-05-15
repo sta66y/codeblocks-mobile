@@ -13,7 +13,7 @@ struct CodeBlocksView: View {
                 
                 List {
                     ForEach($selectedBlocks) { $block in
-                        BlockWithChildren(block: $block)
+                        BlockWithChildren(block: $block, allBlocks: $selectedBlocks)
                     }
                     .onMove(perform: move)
                     .onDelete(perform: delete)
@@ -56,24 +56,5 @@ struct CodeBlocksView: View {
     
     func delete(at offsets: IndexSet) {
         selectedBlocks.remove(atOffsets: offsets)
-    }
-}
-
-struct CodeBlocksView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationStack {
-            CodeBlocksView(selectedBlocks: .constant([
-                BlockModel(
-                    name: "while",
-                    type: .whileCase,
-                    color: .yellow,
-                    children: [
-                        BlockModel(name: "print", type: .printCase, color: .green),
-                        BlockModel(name: "if", type: .ifCase, color: .red)
-                    ]
-                ),
-                BlockModel(name: "for", type: .forCase, color: .yellow)
-            ]))
-        }
     }
 }
