@@ -8,11 +8,13 @@ struct BlockWithChildren: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 BlockView(block: $block)
-                Button(action: {
-                    showingBlockSelection = true
-                }) {
-                    Image(systemName: "plus")
-                        .foregroundColor(.green)
+                if Set([BlockModel.BlockType.ifCase, .whileCase, .forCase]).contains(block.type) {
+                    Button(action: {
+                        showingBlockSelection = true
+                    }) {
+                        Image(systemName: "plus")
+                            .foregroundColor(.green)
+                    }
                 }
             }
             .sheet(isPresented: $showingBlockSelection) {
