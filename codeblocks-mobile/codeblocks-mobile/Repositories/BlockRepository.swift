@@ -4,14 +4,14 @@ enum BlockRepository {
     static func addBlock(_ block: BlockModel, to blocks: inout [BlockModel]) {
             if !block.name.isEmpty {
                 blocks.append(block)
-                print("Добавлен блок: \(block.name)")
+                print("Добавлен блок: \(block.name) с ID \(block.id) в род блок")
             }
-        }
+    }
         
     static func addBlock(_ block: BlockModel, toChildrenOf parentBlock: inout BlockModel) {
         if !block.name.isEmpty {
             parentBlock.children.append(block)
-            print("Добавлен блок: \(block.name) в children блока: \(parentBlock.name)")
+            print("Добавлени блок: \(block.name) с ID \(block.id) в children блок: \(parentBlock.name) с ID \(parentBlock.id) \(parentBlock.children.count) \(parentBlock.children.map { $0.name })")
         }
     }
     

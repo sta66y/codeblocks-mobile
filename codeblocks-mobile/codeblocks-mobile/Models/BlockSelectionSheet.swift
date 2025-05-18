@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct BlockSelectionSheet: View {
+    let parentBlockId: UUID
     let onSelect: (BlockModel) -> Void
     
     var body: some View {

@@ -19,28 +19,42 @@ struct BlockWithChildren: View {
                 }
             }
             .sheet(isPresented: $showingBlockSelection) {
-                BlockSelectionSheet(onSelect: { selectedBlock in
-                    if selectedBlock.type == .declareVars {
-                        var newBlock = selectedBlock
-                        BlockRepository.addBlock(newBlock, toChildrenOf: &block)
-                        let assignedVariables = allBlocks
-                            .filter { $0.type == .assign && !$0.variable.isEmpty }
-                            .map { $0.variable }
-                        let availableVariables = newBlock.variableNames.filter { !assignedVariables.contains($0) }
+                BlockSelectionSheet(parentBlockId: block.id, onSelect: { selectedBlock in
+                    var newBlock = BlockModel(
+                        name: selectedBlock.name,
+                        type: selectedBlock.type,
+                        color: selectedBlock.color,
+                        content: selectedBlock.content,
+                        variableNames: selectedBlock.variableNames,
+                        variable: selectedBlock.variable,
+                        operands: selectedBlock.operands
+                    )
+                    
+                    if let index = allBlocks.firstIndex(where: { $0.id == block.id }) {
+                        var updatedBlock = deepCopyBlock(allBlocks[index])
                         
-                        for variable in availableVariables {
-                            let assignBlock = BlockModel(
-                                name: "Присвоить",
-                                type: .assign,
-                                color: .purple,
-                                content: "",
-                                variableNames: newBlock.variableNames,
-                                variable: variable
-                            )
-                            BlockRepository.addBlock(assignBlock, toChildrenOf: &newBlock)
+                        if newBlock.type == .declareVars {
+                            BlockRepository.addBlock(newBlock, toChildrenOf: &updatedBlock)
+                            let assignedVariables = allBlocks
+                                .filter { $0.type == .assign && !$0.variable.isEmpty }
+                                .map { $0.variable }
+                            let availableVariables = newBlock.variableNames.filter { !assignedVariables.contains($0) }
+                       
+                            for variable in availableVariables {
+                                let assignBlock = BlockModel(
+                                    name: "Присвоить",
+                                    type: .assign,
+                                    color: .purple,
+                                    content: "",
+                                    variableNames: newBlock.variableNames,
+                                    variable: variable
+                                )
+                                BlockRepository.addBlock(assignBlock, toChildrenOf: &newBlock)
+                            }
+                        } else {
+                            BlockRepository.addBlock(newBlock, toChildrenOf: &updatedBlock)
                         }
-                    } else {
-                        BlockRepository.addBlock(selectedBlock, toChildrenOf: &block)
+                        allBlocks[index] = updatedBlock
                     }
                     showingBlockSelection = false
                 })
@@ -85,5 +99,18 @@ struct BlockWithChildren: View {
                 block.children = block.children.filter { $0.type != .assign } + newAssignBlocks
             }
         }
+    }
+    
+    private func deepCopyBlock(_ block: BlockModel) -> BlockModel {
+        return BlockModel(
+            name: block.name,
+            type: block.type,
+            color: block.color,
+            content: block.content,
+            children: block.children.map { deepCopyBlock($0) },
+            variableNames: block.variableNames,
+            variable: block.variable,
+            operands: block.operands.map { deepCopyBlock($0) }
+        )
     }
 }

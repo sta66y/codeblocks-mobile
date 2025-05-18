@@ -43,8 +43,17 @@ struct CodeBlocksView: View {
             }
         }
         .sheet(isPresented: $showingBlockSelection) {
-            BlockSelectionSheet(onSelect: { selectedBlock in
-                BlockRepository.addBlock(selectedBlock, to: &selectedBlocks)
+            BlockSelectionSheet(parentBlockId: UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), onSelect: { selectedBlock in //00000-00 - нет значения
+                let newBlock = BlockModel(
+                    name: selectedBlock.name,
+                    type: selectedBlock.type,
+                    color: selectedBlock.color,
+                    content: selectedBlock.content,
+                    variableNames: selectedBlock.variableNames,
+                    variable: selectedBlock.variable,
+                    operands: selectedBlock.operands
+                )
+                BlockRepository.addBlock(newBlock, to: &selectedBlocks)
                 showingBlockSelection = false
             })
         }
@@ -56,5 +65,13 @@ struct CodeBlocksView: View {
     
     func delete(at offsets: IndexSet) {
         selectedBlocks.remove(atOffsets: offsets)
+    }
+}
+
+struct CodeBlocksView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
+            CodeBlocksView(selectedBlocks: .constant([]))
+        }
     }
 }
