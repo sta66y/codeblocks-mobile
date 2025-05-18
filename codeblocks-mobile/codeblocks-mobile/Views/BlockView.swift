@@ -1,10 +1,13 @@
 import SwiftUI
+
 struct BlockView: View {
     @Binding var block: BlockModel
     @State private var variableInput: String = ""
+    @State private var conditionInput: String = ""
     @State private var inputError: String?
     @Binding var allBlocks: [BlockModel]
-    
+    @State private var updateTask: DispatchWorkItem?
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(block.name)
@@ -88,11 +91,24 @@ struct BlockView: View {
                 }
 
             case .ifCase, .whileCase:
-                TextField("Условие", text: $block.content)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                TextField("Условие", text: $conditionInput, onEditingChanged: { isEditing in
+                    if !isEditing {
+                        debounceConditionUpdate()
+                    }
+                })
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .onAppear {
+                    conditionInput = block.content
+                }
 
             case .forCase:
-                ForBlockView(content: $block.content)
+                ForBlockView(content: $conditionInput)
+                    .onAppear {
+                        conditionInput = block.content
+                    }
+                    .onChange(of: conditionInput) { oldValue, newValue in
+                        debounceConditionUpdate()
+                    }
 
             case .printCase:
                 TextField("Что вывести", text: $block.content)
@@ -114,5 +130,17 @@ struct BlockView: View {
                 block.variableNames = newVars
             }
         }
+    }
+
+    private func debounceConditionUpdate() {
+        updateTask?.cancel()
+
+        let task = DispatchWorkItem {
+            if conditionInput != block.content {
+                block.content = conditionInput
+            }
+        }
+        updateTask = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: task)
     }
 }
