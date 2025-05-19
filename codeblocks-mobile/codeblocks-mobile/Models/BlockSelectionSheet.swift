@@ -3,6 +3,7 @@ import SwiftUI
 struct BlockSelectionSheet: View {
     let parentBlockId: UUID
     let onSelect: (BlockModel) -> Void
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationStack {
@@ -11,6 +12,7 @@ struct BlockSelectionSheet: View {
                     ForEach(BlockRepository.variables) { block in
                         Button(action: {
                             onSelect(block)
+                            dismiss()
                         }) {
                             Text(block.name)
                                 .foregroundColor(block.color)
@@ -22,6 +24,7 @@ struct BlockSelectionSheet: View {
                     ForEach(BlockRepository.arithmetic) { block in
                         Button(action: {
                             onSelect(block)
+                            dismiss()
                         }) {
                             Text(block.name)
                                 .foregroundColor(block.color)
@@ -33,6 +36,7 @@ struct BlockSelectionSheet: View {
                     ForEach(BlockRepository.conditions) { block in
                         Button(action: {
                             onSelect(block)
+                            dismiss()
                         }) {
                             Text(block.name)
                                 .foregroundColor(block.color)
@@ -44,6 +48,7 @@ struct BlockSelectionSheet: View {
                     ForEach(BlockRepository.cycles) { block in
                         Button(action: {
                             onSelect(block)
+                            dismiss()
                         }) {
                             Text(block.name)
                                 .foregroundColor(block.color)
@@ -55,6 +60,7 @@ struct BlockSelectionSheet: View {
                     ForEach(BlockRepository.interactions) { block in
                         Button(action: {
                             onSelect(block)
+                            dismiss()
                         }) {
                             Text(block.name)
                                 .foregroundColor(block.color)
@@ -64,7 +70,7 @@ struct BlockSelectionSheet: View {
             }
             .navigationTitle("Выберите блок")
             .navigationBarItems(trailing: Button("Отмена") {
-                onSelect(BlockModel(name: "", type: .printCase, color: .clear))
+                dismiss()
             })
         }
     }

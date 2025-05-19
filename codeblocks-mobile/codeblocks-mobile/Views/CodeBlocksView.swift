@@ -18,7 +18,7 @@ struct CodeBlocksView: View {
                     .onMove(perform: move)
                     .onDelete(perform: delete)
                 }
-                .environment(\.editMode, .constant(.active))
+                .environment(\.editMode, Binding.constant(EditMode.active))
             }
             .navigationTitle("Программа")
             
@@ -43,7 +43,7 @@ struct CodeBlocksView: View {
             }
         }
         .sheet(isPresented: $showingBlockSelection) {
-            BlockSelectionSheet(parentBlockId: UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), onSelect: { selectedBlock in //00000-00 - нет значения
+            BlockSelectionSheet(parentBlockId: UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), onSelect: { selectedBlock in
                 let newBlock = BlockModel(
                     name: selectedBlock.name,
                     type: selectedBlock.type,
@@ -58,11 +58,11 @@ struct CodeBlocksView: View {
             })
         }
     }
-    
+
     func move(from source: IndexSet, to destination: Int) {
         selectedBlocks.move(fromOffsets: source, toOffset: destination)
     }
-    
+
     func delete(at offsets: IndexSet) {
         selectedBlocks.remove(atOffsets: offsets)
     }
