@@ -30,9 +30,10 @@ struct BlockView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     TextField("Переменные (через запятую)", text: $variableInput)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .onChange(of: variableInput) { newValue in
-                            updateVariableNames(from: newValue)
+                        .onChange(of: variableInput) {
+                            updateVariableNames(from: variableInput)
                         }
+
                         .onAppear {
                             variableInput = block.variableNames.joined(separator: ", ")
                         }
