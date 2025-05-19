@@ -2,10 +2,10 @@ import SwiftUI
 
 enum BlockRepository {
     static func addBlock(_ block: BlockModel, to blocks: inout [BlockModel]) {
-            if !block.name.isEmpty {
-                blocks.append(block)
-                print("Добавлен блок: \(block.name) с ID \(block.id) в род блок")
-            }
+        if !block.name.isEmpty {
+            blocks.append(block)
+            print("Добавлен блок: \(block.name) с ID \(block.id) в род блок")
+        }
     }
         
     static func addBlock(_ block: BlockModel, toChildrenOf parentBlock: inout BlockModel) {
@@ -21,12 +21,7 @@ enum BlockRepository {
     ]
     
     static let arithmetic: [BlockModel] = [
-        BlockModel(name: "Арифметическое выражение", type: .operatorCase, color: .orange),
-        BlockModel(name: "+", type: .add, color: .orange),
-        BlockModel(name: "-", type: .subtract, color: .orange),
-        BlockModel(name: "*", type: .multiply, color: .orange),
-        BlockModel(name: "/", type: .divide, color: .orange),
-        BlockModel(name: "%", type: .modulo, color: .orange)
+        BlockModel(name: "Арифметическое выражение", type: .operatorCase, color: .orange)
     ]
     
     static let conditions: [BlockModel] = [

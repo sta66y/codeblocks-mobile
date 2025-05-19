@@ -16,6 +16,10 @@ struct BlockView: View {
     @State private var expressions: [Expression] = []
 
     var body: some View {
+        let declaredVariables = Array(Set(allBlocks
+            .filter { $0.type == .declareVars }
+            .flatMap { $0.variableNames }))
+
         VStack(alignment: .leading, spacing: 8) {
             Text(block.name)
                 .font(.headline)
@@ -33,7 +37,6 @@ struct BlockView: View {
                         .onChange(of: variableInput) {
                             updateVariableNames(from: variableInput)
                         }
-
                         .onAppear {
                             variableInput = block.variableNames.joined(separator: ", ")
                         }
@@ -46,18 +49,13 @@ struct BlockView: View {
 
             case .assign:
                 HStack {
-                    let assignedVariables = allBlocks
-                        .filter { $0.type == .assign && $0.id != block.id && !$0.variable.isEmpty }
-                        .map { $0.variable }
-                    let availableVariables = block.variableNames.filter { !assignedVariables.contains($0) }
-
-                    if block.variableNames.isEmpty {
+                    if declaredVariables.isEmpty {
                         Text("Нет доступных переменных")
                             .foregroundColor(.gray)
                     } else {
                         Picker("", selection: $block.variable) {
                             Text("Выберите переменную").tag("")
-                            ForEach(availableVariables, id: \.self) { variable in
+                            ForEach(declaredVariables, id: \.self) { variable in
                                 Text(variable).tag(variable)
                             }
                         }
@@ -66,7 +64,7 @@ struct BlockView: View {
                     Text("=")
                     TextField("Выражение", text: $block.content)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .disabled(block.variableNames.isEmpty || availableVariables.isEmpty)
+                        .disabled(declaredVariables.isEmpty)
                 }
 
             case .add, .subtract, .multiply, .divide, .modulo:
@@ -99,7 +97,7 @@ struct BlockView: View {
             case .operatorCase:
                 ScrollView(.horizontal) {
                     HStack(spacing: 10) {
-                        let availableVariables = block.variableNames
+                        let availableVariables = declaredVariables
 
                         ForEach(expressions.indices, id: \.self) { index in
                             HStack {
