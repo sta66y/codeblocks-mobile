@@ -1,5 +1,11 @@
 import SwiftUI
 
+struct Expression {
+    var operand: String
+    var operatorType: String
+    var isNumber: Bool
+}
+
 struct BlockView: View {
     @Binding var block: BlockModel
     @State private var variableInput: String = ""
@@ -7,6 +13,7 @@ struct BlockView: View {
     @State private var inputError: String?
     @Binding var allBlocks: [BlockModel]
     @State private var updateTask: DispatchWorkItem?
+    @State private var expressions: [Expression] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -18,7 +25,6 @@ struct BlockView: View {
                 .background(block.color)
                 .cornerRadius(6)
 
-            // Рендерим контент в зависимости от типа
             switch block.type {
             case .declareVars:
                 VStack(alignment: .leading, spacing: 4) {
@@ -30,7 +36,6 @@ struct BlockView: View {
                         .onAppear {
                             variableInput = block.variableNames.joined(separator: ", ")
                         }
-
                     if let error = inputError {
                         Text(error)
                             .foregroundColor(.red)
@@ -88,6 +93,94 @@ struct BlockView: View {
                         }
                     ))
                     .textFieldStyle(RoundedBorderTextFieldStyle())
+                }
+
+            case .operatorCase:
+                ScrollView(.horizontal) {
+                    HStack(spacing: 10) {
+                        let availableVariables = block.variableNames
+
+                        ForEach(expressions.indices, id: \.self) { index in
+                            HStack {
+                                Picker("", selection: Binding(
+                                    get: { expressions[index].operand },
+                                    set: { newValue in
+                                        expressions[index].operand = newValue
+                                        expressions[index].isNumber = newValue == "number"
+                                        if expressions[index].isNumber {
+                                            if index < block.operands.count {
+                                                block.operands[index].content = ""
+                                            } else {
+                                                block.operands.append(BlockModel(name: "var \(index + 1)", type: .operatorCase, color: block.color, content: ""))
+                                            }
+                                        }
+                                    }
+                                )) {
+                                    Text("var \(index + 1)").tag("")
+                                    ForEach(availableVariables, id: \.self) { variable in
+                                        Text(variable).tag(variable)
+                                    }
+                                    Text("Число").tag("number")
+                                }
+                                .pickerStyle(MenuPickerStyle())
+
+                                if expressions[index].isNumber {
+                                    TextField("Число", text: Binding(
+                                        get: { index < block.operands.count ? block.operands[index].content : "" },
+                                        set: { newValue in
+                                            if index < block.operands.count {
+                                                block.operands[index].content = newValue
+                                            } else {
+                                                block.operands.append(BlockModel(name: "var \(index + 1)", type: .operatorCase, color: block.color, content: newValue))
+                                            }
+                                        }
+                                    ))
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                } else {
+                                    Text(expressions[index].operand.isEmpty ? "" : expressions[index].operand)
+                                }
+
+                                if index < expressions.count - 1 {
+                                    Picker("", selection: Binding(
+                                        get: { expressions[index].operatorType },
+                                        set: { newValue in
+                                            expressions[index].operatorType = newValue
+                                        }
+                                    )) {
+                                        Text("=").tag("=")
+                                        Text("+").tag("+")
+                                        Text("-").tag("-")
+                                        Text("*").tag("*")
+                                        Text("/").tag("/")
+                                        Text("%").tag("%")
+                                    }
+                                    .pickerStyle(MenuPickerStyle())
+                                }
+                            }
+                        }
+
+                        Button(action: {
+                            expressions.append(Expression(operand: "", operatorType: "+", isNumber: false))
+                        }) {
+                            Text("Добавить операнд")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+                .frame(height: 50)
+                .onAppear {
+                    if expressions.isEmpty {
+                        expressions = block.operands.enumerated().map { index, operand in
+                            Expression(
+                                operand: operand.content.isEmpty ? "" : operand.content,
+                                operatorType: index < block.operands.count - 1 ? block.operands[index].content : "+",
+                                isNumber: Double(operand.content) != nil
+                            )
+                        }
+                        if expressions.isEmpty {
+                            expressions.append(Expression(operand: "", operatorType: "+", isNumber: false))
+                        }
+                    }
                 }
 
             case .ifCase, .whileCase:

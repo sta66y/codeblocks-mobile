@@ -21,6 +21,7 @@ enum BlockRepository {
     ]
     
     static let arithmetic: [BlockModel] = [
+        BlockModel(name: "Арифметическое выражение", type: .operatorCase, color: .orange),
         BlockModel(name: "+", type: .add, color: .orange),
         BlockModel(name: "-", type: .subtract, color: .orange),
         BlockModel(name: "*", type: .multiply, color: .orange),
