@@ -6,17 +6,37 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8E658E4B2DDCE4F000AADAF4 /* codeblocks_mobileApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE466332DDCE1DA003CCE71 /* codeblocks_mobileApp.swift */; };
+		8E658E4C2DDCE53B00AADAF4 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE466422DDCE1DA003CCE71 /* WelcomeView.swift */; };
+		8E658E4D2DDCE57900AADAF4 /* CodeBlocksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE4663E2DDCE1DA003CCE71 /* CodeBlocksView.swift */; };
+		8E658E4E2DDCE57900AADAF4 /* Interpreter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE466352DDCE1DA003CCE71 /* Interpreter.swift */; };
+		8E658E4F2DDCE57900AADAF4 /* ResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE466412DDCE1DA003CCE71 /* ResultView.swift */; };
+		8E658E502DDCE57900AADAF4 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE466402DDCE1DA003CCE71 /* MainTabView.swift */; };
+		8E658E512DDCE57900AADAF4 /* BlockWithChildren.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE466392DDCE1DA003CCE71 /* BlockWithChildren.swift */; };
+		8E658E522DDCE57900AADAF4 /* ForBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE4663F2DDCE1DA003CCE71 /* ForBlockView.swift */; };
+		8E658E532DDCE57900AADAF4 /* BlockRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE4663B2DDCE1DA003CCE71 /* BlockRepository.swift */; };
+		8E658E542DDCE57900AADAF4 /* BlockSelectionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE466382DDCE1DA003CCE71 /* BlockSelectionSheet.swift */; };
+		8E658E552DDCE57900AADAF4 /* BlockModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE466372DDCE1DA003CCE71 /* BlockModel.swift */; };
+		8E658E562DDCE57900AADAF4 /* BlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE4663D2DDCE1DA003CCE71 /* BlockView.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		8EE466322DDCE1DA003CCE71 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		8EE466332DDCE1DA003CCE71 /* codeblocks_mobileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = codeblocks_mobileApp.swift; sourceTree = "<group>"; };
+		8EE466352DDCE1DA003CCE71 /* Interpreter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Interpreter.swift; sourceTree = "<group>"; };
+		8EE466372DDCE1DA003CCE71 /* BlockModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockModel.swift; sourceTree = "<group>"; };
+		8EE466382DDCE1DA003CCE71 /* BlockSelectionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockSelectionSheet.swift; sourceTree = "<group>"; };
+		8EE466392DDCE1DA003CCE71 /* BlockWithChildren.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockWithChildren.swift; sourceTree = "<group>"; };
+		8EE4663B2DDCE1DA003CCE71 /* BlockRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockRepository.swift; sourceTree = "<group>"; };
+		8EE4663D2DDCE1DA003CCE71 /* BlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockView.swift; sourceTree = "<group>"; };
+		8EE4663E2DDCE1DA003CCE71 /* CodeBlocksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeBlocksView.swift; sourceTree = "<group>"; };
+		8EE4663F2DDCE1DA003CCE71 /* ForBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForBlockView.swift; sourceTree = "<group>"; };
+		8EE466402DDCE1DA003CCE71 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		8EE466412DDCE1DA003CCE71 /* ResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultView.swift; sourceTree = "<group>"; };
+		8EE466422DDCE1DA003CCE71 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		CAF20E672DCA10B80052A5D5 /* codeblocks-mobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "codeblocks-mobile.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		CAF20E692DCA10B80052A5D5 /* codeblocks-mobile */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "codeblocks-mobile";
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		CAF20E642DCA10B80052A5D5 /* Frameworks */ = {
@@ -29,10 +49,54 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8EE466362DDCE1DA003CCE71 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				8EE466352DDCE1DA003CCE71 /* Interpreter.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		8EE4663A2DDCE1DA003CCE71 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				8EE466372DDCE1DA003CCE71 /* BlockModel.swift */,
+				8EE466382DDCE1DA003CCE71 /* BlockSelectionSheet.swift */,
+				8EE466392DDCE1DA003CCE71 /* BlockWithChildren.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		8EE4663C2DDCE1DA003CCE71 /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+				8EE4663B2DDCE1DA003CCE71 /* BlockRepository.swift */,
+			);
+			path = Repositories;
+			sourceTree = "<group>";
+		};
+		8EE466432DDCE1DA003CCE71 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				8EE4663D2DDCE1DA003CCE71 /* BlockView.swift */,
+				8EE4663E2DDCE1DA003CCE71 /* CodeBlocksView.swift */,
+				8EE4663F2DDCE1DA003CCE71 /* ForBlockView.swift */,
+				8EE466402DDCE1DA003CCE71 /* MainTabView.swift */,
+				8EE466412DDCE1DA003CCE71 /* ResultView.swift */,
+				8EE466422DDCE1DA003CCE71 /* WelcomeView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
 		CAF20E5E2DCA10B80052A5D5 = {
 			isa = PBXGroup;
 			children = (
-				CAF20E692DCA10B80052A5D5 /* codeblocks-mobile */,
+				8EE466322DDCE1DA003CCE71 /* Assets.xcassets */,
+				8EE466332DDCE1DA003CCE71 /* codeblocks_mobileApp.swift */,
+				8EE466362DDCE1DA003CCE71 /* Core */,
+				8EE4663A2DDCE1DA003CCE71 /* Models */,
+				8EE4663C2DDCE1DA003CCE71 /* Repositories */,
+				8EE466432DDCE1DA003CCE71 /* Views */,
 				CAF20E682DCA10B80052A5D5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -59,9 +123,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				CAF20E692DCA10B80052A5D5 /* codeblocks-mobile */,
 			);
 			name = "codeblocks-mobile";
 			packageProductDependencies = (
@@ -119,6 +180,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8E658E4B2DDCE4F000AADAF4 /* codeblocks_mobileApp.swift in Sources */,
+				8E658E4D2DDCE57900AADAF4 /* CodeBlocksView.swift in Sources */,
+				8E658E4E2DDCE57900AADAF4 /* Interpreter.swift in Sources */,
+				8E658E4F2DDCE57900AADAF4 /* ResultView.swift in Sources */,
+				8E658E502DDCE57900AADAF4 /* MainTabView.swift in Sources */,
+				8E658E512DDCE57900AADAF4 /* BlockWithChildren.swift in Sources */,
+				8E658E522DDCE57900AADAF4 /* ForBlockView.swift in Sources */,
+				8E658E532DDCE57900AADAF4 /* BlockRepository.swift in Sources */,
+				8E658E542DDCE57900AADAF4 /* BlockSelectionSheet.swift in Sources */,
+				8E658E552DDCE57900AADAF4 /* BlockModel.swift in Sources */,
+				8E658E562DDCE57900AADAF4 /* BlockView.swift in Sources */,
+				8E658E4C2DDCE53B00AADAF4 /* WelcomeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,0 +1,46 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Xcode
+build/
+DerivedData/
+*.xcworkspace/xcshareddata/
+*.xcuserstate
+*.xcuserdata/
+*.xccheckout
+*.xcodeproj/project.xcworkspace/xcuserdata
+
+# SwiftPM
+.build/
+.swiftpm/
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/
+Carthage.build/
+
+# Fastlane
+fastlane/report.xml
+fastlane/screenshots
+fastlane/test_output
+
+# Archives
+*.xcarchive
+
+# Playground
+timeline.xctimeline
+playground.xcworkspace
+
+# User-specific
+*.orig
+*.swp
+.idea/
+*.iml
+.vscode/
+*.log
