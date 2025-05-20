@@ -14,13 +14,16 @@ struct BlockView: View {
     @Binding var allBlocks: [BlockModel]
     let index: Int
     @State private var updateTask: DispatchWorkItem?
+    @State private var variableUpdateTask: DispatchWorkItem?
     @State private var expressions: [Expression] = []
 
-    var body: some View {
-        let declaredVariables = Array(Set(allBlocks.prefix(upTo: index)
+    private var availableVariables: [String] {
+        Array(Set(allBlocks.prefix(upTo: index)
             .filter { $0.type == .declareVars }
             .flatMap { $0.variableNames }))
+    }
 
+    var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(block.name)
                 .font(.headline)
@@ -36,7 +39,7 @@ struct BlockView: View {
                     TextField("Переменные (через запятую)", text: $variableInput)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .onChange(of: variableInput) {
-                            updateVariableNames(from: variableInput)
+                            debounceVariableUpdate()
                         }
                         .onAppear {
                             variableInput = block.variableNames.joined(separator: ", ")
@@ -50,13 +53,13 @@ struct BlockView: View {
 
             case .assign:
                 HStack {
-                    if declaredVariables.isEmpty {
+                    if availableVariables.isEmpty {
                         Text("Нет доступных переменных")
                             .foregroundColor(.gray)
                     } else {
                         Picker("", selection: $block.variable) {
                             Text("Выберите переменную").tag("")
-                            ForEach(declaredVariables, id: \.self) { variable in
+                            ForEach(availableVariables, id: \.self) { variable in
                                 Text(variable).tag(variable)
                             }
                         }
@@ -65,13 +68,24 @@ struct BlockView: View {
                     Text("=")
                     TextField("Выражение", text: $block.content)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .disabled(declaredVariables.isEmpty)
+                        .disabled(availableVariables.isEmpty)
                 }
 
             case .operatorCase:
                 ScrollView(.horizontal) {
                     HStack(spacing: 10) {
-                        let availableVariables = declaredVariables
+                        if !availableVariables.isEmpty {
+                            Picker("", selection: $block.variable) {
+                                Text("Выберите переменную").tag("")
+                                ForEach(availableVariables, id: \.self) { variable in
+                                    Text(variable).tag(variable)
+                                }
+                            }
+                            .pickerStyle(MenuPickerStyle())
+                            Text("=")
+                        } else {
+                            Text("Нет доступных переменных").foregroundColor(.gray)
+                        }
 
                         ForEach(expressions.indices, id: \.self) { index in
                             HStack {
@@ -80,16 +94,19 @@ struct BlockView: View {
                                     set: { newValue in
                                         expressions[index].operand = newValue
                                         expressions[index].isNumber = newValue == "number"
-                                        if expressions[index].isNumber {
-                                            if index < block.operands.count {
-                                                block.operands[index].content = ""
-                                            } else {
-                                                block.operands.append(BlockModel(name: "var \(index + 1)", type: .operatorCase, color: block.color, content: ""))
-                                            }
+
+                                        if index < block.operands.count {
+                                            block.operands[index].content = newValue == "number" ? "" : newValue
+                                        } else {
+                                            block.operands.append(BlockModel(
+                                                name: "",
+                                                type: .operatorCase,
+                                                color: block.color,
+                                                content: newValue == "number" ? "" : newValue
+                                            ))
                                         }
                                     }
                                 )) {
-                                    Text("var \(index + 1)").tag("")
                                     ForEach(availableVariables, id: \.self) { variable in
                                         Text(variable).tag(variable)
                                     }
@@ -103,24 +120,17 @@ struct BlockView: View {
                                         set: { newValue in
                                             if index < block.operands.count {
                                                 block.operands[index].content = newValue
-                                            } else {
-                                                block.operands.append(BlockModel(name: "var \(index + 1)", type: .operatorCase, color: block.color, content: newValue))
                                             }
                                         }
                                     ))
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                                } else {
-                                    Text(expressions[index].operand.isEmpty ? "" : expressions[index].operand)
                                 }
 
                                 if index < expressions.count - 1 {
                                     Picker("", selection: Binding(
                                         get: { expressions[index].operatorType },
-                                        set: { newValue in
-                                            expressions[index].operatorType = newValue
-                                        }
+                                        set: { expressions[index].operatorType = $0 }
                                     )) {
-                                        Text("=").tag("=")
                                         Text("+").tag("+")
                                         Text("-").tag("-")
                                         Text("*").tag("*")
@@ -133,7 +143,12 @@ struct BlockView: View {
                         }
 
                         Button(action: {
-                            expressions.append(Expression(operand: "", operatorType: "+", isNumber: false))
+                            expressions.append(Expression(
+                                operand: availableVariables.first ?? "",
+                                operatorType: "+",
+                                isNumber: false
+                            ))
+                            block.operands.append(BlockModel(name: "", type: .operatorCase, color: block.color, content: availableVariables.first ?? ""))
                         }) {
                             Text("Добавить операнд")
                                 .foregroundColor(.blue)
@@ -145,16 +160,20 @@ struct BlockView: View {
                     if expressions.isEmpty {
                         expressions = block.operands.enumerated().map { index, operand in
                             Expression(
-                                operand: operand.content.isEmpty ? "" : operand.content,
-                                operatorType: index < block.operands.count - 1 ? block.operands[index].content : "+",
+                                operand: operand.content,
+                                operatorType: index < block.operands.count - 1 ? "+" : "",
                                 isNumber: Double(operand.content) != nil
                             )
                         }
+
                         if expressions.isEmpty {
-                            expressions.append(Expression(operand: "", operatorType: "+", isNumber: false))
+                            let defaultOperand = availableVariables.first ?? ""
+                            expressions.append(Expression(operand: defaultOperand, operatorType: "+", isNumber: false))
+                            block.operands.append(BlockModel(name: "", type: .operatorCase, color: block.color, content: defaultOperand))
                         }
                     }
                 }
+
 
             case .ifCase, .whileCase:
                 TextField("Условие", text: $conditionInput, onEditingChanged: { isEditing in
@@ -172,7 +191,7 @@ struct BlockView: View {
                     .onAppear {
                         conditionInput = block.content
                     }
-                    .onChange(of: conditionInput) { oldValue, newValue in
+                    .onChange(of: conditionInput) { _, newValue in
                         debounceConditionUpdate()
                     }
 
@@ -198,9 +217,17 @@ struct BlockView: View {
         }
     }
 
+    private func debounceVariableUpdate() {
+        variableUpdateTask?.cancel()
+        let task = DispatchWorkItem {
+            self.updateVariableNames(from: self.variableInput)
+        }
+        variableUpdateTask = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: task)
+    }
+
     private func debounceConditionUpdate() {
         updateTask?.cancel()
-
         let task = DispatchWorkItem {
             if conditionInput != block.content {
                 block.content = conditionInput
