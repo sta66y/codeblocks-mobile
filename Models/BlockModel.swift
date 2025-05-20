@@ -15,11 +15,6 @@ struct BlockModel: Identifiable {
     enum BlockType {
         case declareVars
         case assign
-        case add
-        case subtract
-        case multiply
-        case divide
-        case modulo
         case ifCase
         case whileCase
         case forCase

@@ -68,33 +68,6 @@ struct BlockView: View {
                         .disabled(declaredVariables.isEmpty)
                 }
 
-            case .add, .subtract, .multiply, .divide, .modulo:
-                HStack {
-                    TextField("Операнд 1", text: Binding(
-                        get: { block.operands.first?.content ?? "" },
-                        set: { newValue in
-                            if block.operands.isEmpty {
-                                block.operands.append(BlockModel(name: "Операнд 1", type: block.type, color: block.color, content: newValue))
-                            } else {
-                                block.operands[0].content = newValue
-                            }
-                        }
-                    ))
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    Text(block.name)
-                    TextField("Операнд 2", text: Binding(
-                        get: { block.operands.dropFirst().first?.content ?? "" },
-                        set: { newValue in
-                            if block.operands.count < 2 {
-                                block.operands.append(BlockModel(name: "Операнд 2", type: block.type, color: block.color, content: newValue))
-                            } else {
-                                block.operands[1].content = newValue
-                            }
-                        }
-                    ))
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
-
             case .operatorCase:
                 ScrollView(.horizontal) {
                     HStack(spacing: 10) {
