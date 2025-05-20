@@ -33,28 +33,7 @@ struct BlockWithChildren: View {
                     
                     if let index = allBlocks.firstIndex(where: { $0.id == block.id }) {
                         var updatedBlock = deepCopyBlock(allBlocks[index])
-                        
-                        if newBlock.type == .declareVars {
-                            BlockRepository.addBlock(newBlock, toChildrenOf: &updatedBlock)
-                            let assignedVariables = allBlocks
-                                .filter { $0.type == .assign && !$0.variable.isEmpty }
-                                .map { $0.variable }
-                            let availableVariables = newBlock.variableNames.filter { !assignedVariables.contains($0) }
-                       
-                            for variable in availableVariables {
-                                let assignBlock = BlockModel(
-                                    name: "Присвоить",
-                                    type: .assign,
-                                    color: .purple,
-                                    content: "",
-                                    variableNames: newBlock.variableNames,
-                                    variable: variable
-                                )
-                                BlockRepository.addBlock(assignBlock, toChildrenOf: &newBlock)
-                            }
-                        } else {
-                            BlockRepository.addBlock(newBlock, toChildrenOf: &updatedBlock)
-                        }
+                        BlockRepository.addBlock(newBlock, toChildrenOf: &updatedBlock)
                         allBlocks[index] = updatedBlock
                     }
                     showingBlockSelection = false
@@ -70,34 +49,7 @@ struct BlockWithChildren: View {
         }
         .onChange(of: block.variableNames) { oldValue, newValue in
             if block.type == .declareVars {
-                var existingAssignBlocks = block.children.filter { $0.type == .assign }
-                var newAssignBlocks: [BlockModel] = []
-                let assignedVariables = allBlocks
-                    .filter { $0.type == .assign && !$0.variable.isEmpty && $0.id != block.id }
-                    .map { $0.variable }
-                
-                for variable in newValue {
-                    if !assignedVariables.contains(variable) {
-                        if let existingIndex = existingAssignBlocks.firstIndex(where: { $0.variable == variable }) {
-                            var updatedBlock = existingAssignBlocks[existingIndex]
-                            updatedBlock.variableNames = newValue
-                            newAssignBlocks.append(updatedBlock)
-                            existingAssignBlocks.remove(at: existingIndex)
-                        } else {
-                            let assignBlock = BlockModel(
-                                name: "Присвоить",
-                                type: .assign,
-                                color: .purple,
-                                content: "",
-                                variableNames: newValue,
-                                variable: variable
-                            )
-                            newAssignBlocks.append(assignBlock)
-                        }
-                    }
-                }
-                
-                block.children = block.children.filter { $0.type != .assign } + newAssignBlocks
+                block.variableNames = newValue
             }
         }
     }
