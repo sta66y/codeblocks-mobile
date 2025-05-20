@@ -12,11 +12,12 @@ struct BlockView: View {
     @State private var conditionInput: String = ""
     @State private var inputError: String?
     @Binding var allBlocks: [BlockModel]
+    let index: Int
     @State private var updateTask: DispatchWorkItem?
     @State private var expressions: [Expression] = []
 
     var body: some View {
-        let declaredVariables = Array(Set(allBlocks
+        let declaredVariables = Array(Set(allBlocks.prefix(upTo: index)
             .filter { $0.type == .declareVars }
             .flatMap { $0.variableNames }))
 

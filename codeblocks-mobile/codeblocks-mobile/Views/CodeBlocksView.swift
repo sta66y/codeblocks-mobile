@@ -12,13 +12,13 @@ struct CodeBlocksView: View {
                     .padding()
                 
                 List {
-                    ForEach($selectedBlocks) { $block in
-                        BlockWithChildren(block: $block, allBlocks: $selectedBlocks)
+                    ForEach(Array($selectedBlocks.enumerated()), id: \.element.id) { index, $block in
+                        BlockWithChildren(block: $block, allBlocks: $selectedBlocks, index: index)
                     }
                     .onMove(perform: move)
                     .onDelete(perform: delete)
                 }
-                .environment(\.editMode, Binding.constant(EditMode.active))
+                .environment(\.editMode, .constant(.active))
             }
             .navigationTitle("Программа")
             
