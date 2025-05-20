@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct MainTabView: View {
-    @State private var selectedBlocks: [BlockModel] = []
+    @StateObject private var programState = ProgramState()
     
     var body: some View {
         TabView {
-            CodeBlocksView(selectedBlocks: $selectedBlocks)
+            CodeBlocksView(selectedBlocks: $programState.selectedBlocks)
                 .tabItem {
                     Label("Программа", systemImage: "list.bullet")
                 }
@@ -15,6 +15,7 @@ struct MainTabView: View {
                     Label("Результат", systemImage: "play.circle")
                 }
         }
+        .environmentObject(programState)
     }
 }
 
