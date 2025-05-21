@@ -38,6 +38,8 @@ struct BlockView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     TextField("Переменные (через запятую)", text: $variableInput)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
                         .onChange(of: variableInput) {
                             debounceVariableUpdate()
                         }
@@ -68,6 +70,8 @@ struct BlockView: View {
                     Text("=")
                     TextField("Выражение", text: $block.content)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
                         .disabled(availableVariables.isEmpty)
                 }
 
@@ -124,6 +128,8 @@ struct BlockView: View {
                                         }
                                     ))
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
                                 }
 
                                 if index < expressions.count - 1 {
@@ -182,6 +188,8 @@ struct BlockView: View {
                     }
                 })
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
                 .onAppear {
                     conditionInput = block.content
                 }
@@ -198,13 +206,15 @@ struct BlockView: View {
             case .printCase:
                 TextField("Что вывести", text: $block.content)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
             }
         }
         .padding(.vertical, 4)
     }
 
     private func updateVariableNames(from input: String) {
-        let newVars = input.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        let newVars = input.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces).lowercased() }.filter { !$0.isEmpty }
         if newVars.isEmpty {
             inputError = "Введите хотя бы одну переменную"
         } else if Set(newVars).count != newVars.count {

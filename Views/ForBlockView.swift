@@ -8,8 +8,13 @@ struct ForBlockView: View {
                 .font(.caption)
                 .foregroundColor(.gray)
 
-            TextField("Переменная и диапазон", text: $content)
+            TextField("Переменная и диапазон", text: Binding(
+                get: { content },
+                set: { content = $0.lowercased() }
+            ))
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
         }
     }
 }
