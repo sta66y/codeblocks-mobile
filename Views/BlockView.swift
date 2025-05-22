@@ -29,6 +29,13 @@ struct BlockView: View {
             .flatMap { $0.variableNames }))
     }
 
+    private var assignedVariables: [String] {
+        allBlocks.prefix(upTo: index)
+            .filter { $0.type == .assign }
+            .map { $0.variable }
+            .filter { !$0.isEmpty }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(block.name)
@@ -65,9 +72,19 @@ struct BlockView: View {
                         Text("Нет доступных переменных")
                             .foregroundColor(.gray)
                     } else {
-                        Picker("", selection: $block.variable) {
+                        Picker("", selection: Binding(
+                            get: { block.variable },
+                            set: { newValue in
+                                if assignedVariables.contains(newValue) && !newValue.isEmpty {
+                                    inputError = "Переменная \(newValue) уже присвоена"
+                                } else {
+                                    inputError = nil
+                                    block.variable = newValue
+                                }
+                            }
+                        )) {
                             Text("Выберите переменную").tag("")
-                            ForEach(availableVariables, id: \.self) { variable in
+                            ForEach(availableVariables.filter { !assignedVariables.contains($0) }, id: \.self) { variable in
                                 Text(variable).tag(variable)
                             }
                         }
@@ -78,7 +95,12 @@ struct BlockView: View {
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                        .disabled(availableVariables.isEmpty)
+                        .disabled(availableVariables.isEmpty || inputError != nil)
+                }
+                if let error = inputError {
+                    Text(error)
+                        .foregroundColor(.red)
+                        .font(.caption)
                 }
 
             case .operatorCase:
