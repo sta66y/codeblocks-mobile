@@ -54,7 +54,11 @@ func handleOperatorCase(block: BlockModel, context: inout Context, output: inout
     for i in 1..<block.operands.count {
         let operand = evaluateExpression(expression: block.operands[i].content, context: context)
         let operatorType = i - 1 < block.operators.count ? block.operators[i - 1] : "+"
-        result = performOperation(operand1: result, operatorType: operatorType, operand2: operand)
+        let (operationResult, hasError) = performOperation(operand1: result, operatorType: operatorType, operand2: operand, output: &output)
+        if hasError {
+            return
+        }
+        result = operationResult
     }
     
     context[block.variable] = result
@@ -62,7 +66,7 @@ func handleOperatorCase(block: BlockModel, context: inout Context, output: inout
 }
 
 func handleIfCase(block: BlockModel, context: inout Context, output: inout [String]) {
-    let condition = evaluateCondition(condition: block.content, context: context)
+    let condition = evaluateCondition(condition: block.content, context: context, output: &output)
     output.append("Условие \(block.content): \(condition)")
     if condition {
         let childOutput = interpret(blocks: block.children, context: &context)
@@ -90,26 +94,35 @@ func evaluateExpression(expression: String, context: Context) -> Int {
     }
 }
 
-func performOperation(operand1: Int, operatorType: String, operand2: Int) -> Int {
+func performOperation(operand1: Int, operatorType: String, operand2: Int, output: inout [String]) -> (result: Int, hasError: Bool) {
     switch operatorType {
-    case "+", "Сложить": return operand1 + operand2
-    case "-", "Вычесть": return operand1 - operand2
-    case "*", "Умножить": return operand1 * operand2
+    case "+", "Сложить":
+        return (operand1 + operand2, false)
+    case "-", "Вычесть":
+        return (operand1 - operand2, false)
+    case "*", "Умножить":
+        return (operand1 * operand2, false)
     case "/", "Разделить":
         if operand2 != 0 {
-            return operand1 / operand2
+            return (operand1 / operand2, false)
         } else {
-            print("Ошибка: деление на ноль")
-            return 0
+            output.append("Ошибка: деление на ноль")
+            return (0, true)
         }
-    case "%": return operand1 % operand2
+    case "%":
+        if operand2 != 0 {
+            return (operand1 % operand2, false)
+        } else {
+            output.append("Ошибка: деление на ноль")
+            return (0, true)
+        }
     default:
-        print("Ошибка: неизвестный оператор \(operatorType)")
-        return 0
+        output.append("Ошибка: неизвестный оператор \(operatorType)")
+        return (0, true)
     }
 }
 
-func evaluateCondition(condition: String, context: Context) -> Bool {
+func evaluateCondition(condition: String, context: Context, output: inout [String]) -> Bool {
     let components = condition.split(separator: " ").map { String($0) }
     if components.count == 3 {
         let left = evaluateExpression(expression: components[0], context: context)
@@ -120,11 +133,11 @@ func evaluateCondition(condition: String, context: Context) -> Bool {
         case "<": return left < right
         case "==": return left == right
         default:
-            print("Ошибка: неизвестный оператор условия \(operatorType)")
+            output.append("Ошибка: неизвестный оператор условия \(operatorType)")
             return false
         }
     } else {
-        print("Ошибка: некорректное условие в блоке")
+        output.append("Ошибка: некорректное условие в блоке")
         return false
     }
 }
