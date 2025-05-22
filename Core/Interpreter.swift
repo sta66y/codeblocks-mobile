@@ -67,7 +67,6 @@ func evaluateExpression(expression: String, context: Context) -> Int {
     } else if let value = context[expression] {
         return value
     } else {
-        print("Ошибка: необъявленная переменная или некорректное выражение: \(expression)")
         return 0
     }
 }
