@@ -39,7 +39,26 @@ func handleAssign(block: BlockModel, context: inout Context, output: inout [Stri
 }
 
 func handleOperatorCase(block: BlockModel, context: inout Context, output: inout [String]) {
-    //kolyan, tebe
+    guard !block.variable.isEmpty else {
+        output.append("Ошибка: не выбрана переменная для присваивания")
+        return
+    }
+    
+    guard !block.operands.isEmpty else {
+        output.append("Ошибка: нет операндов в арифметическом выражении")
+        return
+    }
+    
+    var result = evaluateExpression(expression: block.operands[0].content, context: context)
+    
+    for i in 1..<block.operands.count {
+        let operand = evaluateExpression(expression: block.operands[i].content, context: context)
+        let operatorType = i - 1 < block.operators.count ? block.operators[i - 1] : "+"
+        result = performOperation(operand1: result, operatorType: operatorType, operand2: operand)
+    }
+    
+    context[block.variable] = result
+    output.append("\(block.variable) = \(result)")
 }
 
 func handleIfCase(block: BlockModel, context: inout Context, output: inout [String]) {
@@ -73,16 +92,17 @@ func evaluateExpression(expression: String, context: Context) -> Int {
 
 func performOperation(operand1: Int, operatorType: String, operand2: Int) -> Int {
     switch operatorType {
-    case "Сложить": return operand1 + operand2
-    case "Вычесть": return operand1 - operand2
-    case "Умножить": return operand1 * operand2
-    case "Разделить":
+    case "+", "Сложить": return operand1 + operand2
+    case "-", "Вычесть": return operand1 - operand2
+    case "*", "Умножить": return operand1 * operand2
+    case "/", "Разделить":
         if operand2 != 0 {
             return operand1 / operand2
         } else {
             print("Ошибка: деление на ноль")
             return 0
         }
+    case "%": return operand1 % operand2
     default:
         print("Ошибка: неизвестный оператор \(operatorType)")
         return 0

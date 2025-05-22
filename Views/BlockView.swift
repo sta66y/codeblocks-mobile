@@ -1,9 +1,15 @@
 import SwiftUI
 
-struct Expression {
+struct Expression: Equatable {
     var operand: String
     var operatorType: String
     var isNumber: Bool
+    
+    static func == (lhs: Expression, rhs: Expression) -> Bool {
+        return lhs.operand == rhs.operand &&
+               lhs.operatorType == rhs.operatorType &&
+               lhs.isNumber == rhs.isNumber
+    }
 }
 
 struct BlockView: View {
@@ -167,7 +173,7 @@ struct BlockView: View {
                         expressions = block.operands.enumerated().map { index, operand in
                             Expression(
                                 operand: operand.content,
-                                operatorType: index < block.operands.count - 1 ? "+" : "",
+                                operatorType: index < block.operators.count ? block.operators[index] : "+",
                                 isNumber: Double(operand.content) != nil
                             )
                         }
@@ -177,6 +183,18 @@ struct BlockView: View {
                             expressions.append(Expression(operand: defaultOperand, operatorType: "+", isNumber: false))
                             block.operands.append(BlockModel(name: "", type: .operatorCase, color: block.color, content: defaultOperand))
                         }
+                    }
+                }
+                .onChange(of: expressions) { _, newExpressions in
+                    // Синхронизируем operators и operands с expressions
+                    block.operators = newExpressions.dropLast().map { $0.operatorType }
+                    block.operands = newExpressions.enumerated().map { index, expr in
+                        BlockModel(
+                            name: "",
+                            type: .operatorCase,
+                            color: block.color,
+                            content: expr.isNumber ? (expr.operand == "number" ? "" : expr.operand) : expr.operand
+                        )
                     }
                 }
 

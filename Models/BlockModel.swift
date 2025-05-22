@@ -11,7 +11,8 @@ struct BlockModel: Identifiable {
     var variableNames: [String] = []
     var variable: String = ""
     var operands: [BlockModel] = []
-
+    var operators: [String] = []
+    
     enum BlockType {
         case declareVars
         case assign
