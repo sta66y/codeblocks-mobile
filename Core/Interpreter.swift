@@ -75,12 +75,30 @@ func handleIfCase(block: BlockModel, context: inout Context, output: inout [Stri
 }
 
 func handlePrintCase(block: BlockModel, context: Context, output: inout [String]) {
-    if block.content.hasPrefix("\"") && block.content.hasSuffix("\"") {
-        let text = String(block.content.dropFirst().dropLast())
-        output.append(text)
-    } else {
-        let value = evaluateExpression(expression: block.content, context: context)
+    let quotePairs: [(open: Character, close: Character)] = [
+        ("\"", "\""),
+        ("'", "'"),
+        ("“", "”"),
+        ("‘", "’")
+    ]
+    
+    for (openQuote, closeQuote) in quotePairs {
+        if block.content.hasPrefix(String(openQuote)) && block.content.hasSuffix(String(closeQuote)) {
+            let startIndex = block.content.index(block.content.startIndex, offsetBy: 1)
+            let endIndex = block.content.index(block.content.endIndex, offsetBy: -1)
+            let text = String(block.content[startIndex...endIndex])
+            output.append(text)
+            return
+        }
+    }
+    
+    let value = evaluateExpression(expression: block.content, context: context)
+    if var variableName = context[block.content] {
+        output.append("\(block.content) = \(value)")
+    } else if let _ = Int(block.content) {
         output.append(String(value))
+    } else {
+        output.append("Ошибка: переменная '\(block.content)' не определена")
     }
 }
 
@@ -132,6 +150,9 @@ func evaluateCondition(condition: String, context: Context, output: inout [Strin
         case ">": return left > right
         case "<": return left < right
         case "==": return left == right
+        case "!=": return left != right
+        case ">=": return left >= right
+        case "<=": return left <= right
         default:
             output.append("Ошибка: неизвестный оператор условия \(operatorType)")
             return false
