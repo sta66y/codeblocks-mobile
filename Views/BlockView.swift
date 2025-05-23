@@ -12,6 +12,22 @@ struct Expression: Equatable {
     }
 }
 
+struct ConditionExpression: Equatable {
+    var leftOperand: String
+    var operatorType: String
+    var rightOperand: String
+    var leftIsNumber: Bool
+    var rightIsNumber: Bool
+    
+    static func == (lhs: ConditionExpression, rhs: ConditionExpression) -> Bool {
+        return lhs.leftOperand == rhs.leftOperand &&
+               lhs.operatorType == rhs.operatorType &&
+               lhs.rightOperand == rhs.rightOperand &&
+               lhs.leftIsNumber == rhs.leftIsNumber &&
+               lhs.rightIsNumber == rhs.rightIsNumber
+    }
+}
+
 struct BlockView: View {
     @Binding var block: BlockModel
     @State private var variableInput: String = ""
@@ -22,18 +38,18 @@ struct BlockView: View {
     @State private var updateTask: DispatchWorkItem?
     @State private var variableUpdateTask: DispatchWorkItem?
     @State private var expressions: [Expression] = []
+    @State private var condition: ConditionExpression = ConditionExpression(
+        leftOperand: "",
+        operatorType: ">",
+        rightOperand: "",
+        leftIsNumber: false,
+        rightIsNumber: false
+    )
 
     private var availableVariables: [String] {
         Array(Set(allBlocks.prefix(upTo: index)
             .filter { $0.type == .declareVars }
             .flatMap { $0.variableNames }))
-    }
-
-    private var assignedVariables: [String] {
-        allBlocks.prefix(upTo: index)
-            .filter { $0.type == .assign }
-            .map { $0.variable }
-            .filter { !$0.isEmpty }
     }
 
     var body: some View {
@@ -72,19 +88,9 @@ struct BlockView: View {
                         Text("Нет доступных переменных")
                             .foregroundColor(.gray)
                     } else {
-                        Picker("", selection: Binding(
-                            get: { block.variable },
-                            set: { newValue in
-                                if assignedVariables.contains(newValue) && !newValue.isEmpty {
-                                    inputError = "Переменная \(newValue) уже присвоена"
-                                } else {
-                                    inputError = nil
-                                    block.variable = newValue
-                                }
-                            }
-                        )) {
+                        Picker("", selection: $block.variable) {
                             Text("Выберите переменную").tag("")
-                            ForEach(availableVariables.filter { !assignedVariables.contains($0) }, id: \.self) { variable in
+                            ForEach(availableVariables, id: \.self) { variable in
                                 Text(variable).tag(variable)
                             }
                         }
@@ -95,12 +101,7 @@ struct BlockView: View {
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                        .disabled(availableVariables.isEmpty || inputError != nil)
-                }
-                if let error = inputError {
-                    Text(error)
-                        .foregroundColor(.red)
-                        .font(.caption)
+                        .disabled(availableVariables.isEmpty)
                 }
 
             case .operatorCase:
@@ -208,7 +209,6 @@ struct BlockView: View {
                     }
                 }
                 .onChange(of: expressions) { _, newExpressions in
-                    // Синхронизируем operators и operands с expressions
                     block.operators = newExpressions.dropLast().map { $0.operatorType }
                     block.operands = newExpressions.enumerated().map { index, expr in
                         BlockModel(
@@ -220,8 +220,77 @@ struct BlockView: View {
                     }
                 }
 
+            case .ifCase:
+                HStack(spacing: 10) {
+                    Picker("", selection: Binding(
+                        get: { condition.leftOperand },
+                        set: { condition.leftOperand = $0; condition.leftIsNumber = $0 == "number" }
+                    )) {
+                        ForEach(availableVariables, id: \.self) { variable in
+                            Text(variable).tag(variable)
+                        }
+                        Text("Число").tag("number")
+                    }
+                    .pickerStyle(MenuPickerStyle())
 
-            case .ifCase, .whileCase:
+                    if condition.leftIsNumber {
+                        TextField("Число", text: $conditionInput)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                    }
+
+                    Picker("", selection: $condition.operatorType) {
+                        Text(">").tag(">")
+                        Text("<").tag("<")
+                        Text("==").tag("==")
+                        Text("!=").tag("!=")
+                        Text(">=").tag(">=")
+                        Text("<=").tag("<=")
+                    }
+                    .pickerStyle(MenuPickerStyle())
+
+                    Picker("", selection: Binding(
+                        get: { condition.rightOperand },
+                        set: { condition.rightOperand = $0; condition.rightIsNumber = $0 == "number" }
+                    )) {
+                        ForEach(availableVariables, id: \.self) { variable in
+                            Text(variable).tag(variable)
+                        }
+                        Text("Число").tag("number")
+                    }
+                    .pickerStyle(MenuPickerStyle())
+
+                    if condition.rightIsNumber {
+                        TextField("Число", text: Binding(
+                            get: { conditionInput },
+                            set: { conditionInput = $0 }
+                        ))
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    }
+                }
+                .onChange(of: condition) { _, newCondition in
+                    let left = newCondition.leftIsNumber ? conditionInput : newCondition.leftOperand
+                    let right = newCondition.rightIsNumber ? conditionInput : newCondition.rightOperand
+                    block.content = "\(left) \(newCondition.operatorType) \(right)"
+                }
+                .onAppear {
+                    let components = block.content.split(separator: " ").map { String($0) }
+                    if components.count == 3 {
+                        condition = ConditionExpression(
+                            leftOperand: components[0],
+                            operatorType: components[1],
+                            rightOperand: components[2],
+                            leftIsNumber: Int(components[0]) != nil,
+                            rightIsNumber: Int(components[2]) != nil
+                        )
+                        conditionInput = condition.leftIsNumber ? components[0] : (condition.rightIsNumber ? components[2] : "")
+                    }
+                }
+
+            case .whileCase:
                 TextField("Условие", text: $conditionInput, onEditingChanged: { isEditing in
                     if !isEditing {
                         debounceConditionUpdate()
