@@ -12,28 +12,46 @@ struct Expression: Equatable {
     }
 }
 
+struct ConditionExpression: Equatable {
+    var leftOperand: String
+    var operatorType: String
+    var rightOperand: String
+    var leftIsNumber: Bool
+    var rightIsNumber: Bool
+    
+    static func == (lhs: ConditionExpression, rhs: ConditionExpression) -> Bool {
+        return lhs.leftOperand == rhs.leftOperand &&
+               lhs.operatorType == rhs.operatorType &&
+               lhs.rightOperand == rhs.rightOperand &&
+               lhs.leftIsNumber == rhs.leftIsNumber &&
+               lhs.rightIsNumber == rhs.rightIsNumber
+    }
+}
+
 struct BlockView: View {
     @Binding var block: BlockModel
     @State private var variableInput: String = ""
     @State private var conditionInput: String = ""
+    @State private var leftNumberInputIf: String = ""
+    @State private var rightNumberInputIf: String = ""
     @State private var inputError: String?
     @Binding var allBlocks: [BlockModel]
     let index: Int
     @State private var updateTask: DispatchWorkItem?
     @State private var variableUpdateTask: DispatchWorkItem?
     @State private var expressions: [Expression] = []
+    @State private var conditionIf: ConditionExpression = ConditionExpression(
+        leftOperand: "",
+        operatorType: ">",
+        rightOperand: "",
+        leftIsNumber: false,
+        rightIsNumber: false
+    )
 
     private var availableVariables: [String] {
         Array(Set(allBlocks.prefix(upTo: index)
             .filter { $0.type == .declareVars }
             .flatMap { $0.variableNames }))
-    }
-
-    private var assignedVariables: [String] {
-        allBlocks.prefix(upTo: index)
-            .filter { $0.type == .assign }
-            .map { $0.variable }
-            .filter { !$0.isEmpty }
     }
 
     var body: some View {
@@ -72,19 +90,9 @@ struct BlockView: View {
                         Text("Нет доступных переменных")
                             .foregroundColor(.gray)
                     } else {
-                        Picker("", selection: Binding(
-                            get: { block.variable },
-                            set: { newValue in
-                                if assignedVariables.contains(newValue) && !newValue.isEmpty {
-                                    inputError = "Переменная \(newValue) уже присвоена"
-                                } else {
-                                    inputError = nil
-                                    block.variable = newValue
-                                }
-                            }
-                        )) {
+                        Picker("", selection: $block.variable) {
                             Text("Выберите переменную").tag("")
-                            ForEach(availableVariables.filter { !assignedVariables.contains($0) }, id: \.self) { variable in
+                            ForEach(availableVariables, id: \.self) { variable in
                                 Text(variable).tag(variable)
                             }
                         }
@@ -95,12 +103,7 @@ struct BlockView: View {
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                        .disabled(availableVariables.isEmpty || inputError != nil)
-                }
-                if let error = inputError {
-                    Text(error)
-                        .foregroundColor(.red)
-                        .font(.caption)
+                        .disabled(availableVariables.isEmpty)
                 }
 
             case .operatorCase:
@@ -208,7 +211,6 @@ struct BlockView: View {
                     }
                 }
                 .onChange(of: expressions) { _, newExpressions in
-                    // Синхронизируем operators и operands с expressions
                     block.operators = newExpressions.dropLast().map { $0.operatorType }
                     block.operands = newExpressions.enumerated().map { index, expr in
                         BlockModel(
@@ -220,8 +222,85 @@ struct BlockView: View {
                     }
                 }
 
+            case .ifCase:
+                HStack(spacing: 10) {
+                    Picker("", selection: Binding(
+                        get: { conditionIf.leftOperand },
+                        set: { conditionIf.leftOperand = $0; conditionIf.leftIsNumber = $0 == "number" }
+                    )) {
+                        ForEach(availableVariables, id: \.self) { variable in
+                            Text(variable).tag(variable)
+                        }
+                        Text("Число").tag("number")
+                    }
+                    .pickerStyle(MenuPickerStyle())
 
-            case .ifCase, .whileCase:
+                    if conditionIf.leftIsNumber {
+                        TextField("Число", text: $leftNumberInputIf)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                    }
+
+                    Picker("", selection: $conditionIf.operatorType) {
+                        Text(">").tag(">")
+                        Text("<").tag("<")
+                        Text("==").tag("==")
+                        Text("!=").tag("!=")
+                        Text(">=").tag(">=")
+                        Text("<=").tag("<=")
+                    }
+                    .pickerStyle(MenuPickerStyle())
+
+                    Picker("", selection: Binding(
+                        get: { conditionIf.rightOperand },
+                        set: { conditionIf.rightOperand = $0; conditionIf.rightIsNumber = $0 == "number" }
+                    )) {
+                        ForEach(availableVariables, id: \.self) { variable in
+                            Text(variable).tag(variable)
+                        }
+                        Text("Число").tag("number")
+                    }
+                    .pickerStyle(MenuPickerStyle())
+
+                    if conditionIf.rightIsNumber {
+                        TextField("Число", text: $rightNumberInputIf)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                    }
+                }
+                .onChange(of: conditionIf) { _, newCondition in
+                    let left = newCondition.leftIsNumber ? (leftNumberInputIf.isEmpty ? "0" : leftNumberInputIf) : newCondition.leftOperand
+                    let right = newCondition.rightIsNumber ? (rightNumberInputIf.isEmpty ? "0" : rightNumberInputIf) : newCondition.rightOperand
+                    block.content = "\(left) \(newCondition.operatorType) \(right)"
+                }
+                .onChange(of: leftNumberInputIf) { _, _ in
+                    let left = conditionIf.leftIsNumber ? (leftNumberInputIf.isEmpty ? "0" : leftNumberInputIf) : conditionIf.leftOperand
+                    let right = conditionIf.rightIsNumber ? (rightNumberInputIf.isEmpty ? "0" : rightNumberInputIf) : conditionIf.rightOperand
+                    block.content = "\(left) \(conditionIf.operatorType) \(right)"
+                }
+                .onChange(of: rightNumberInputIf) { _, _ in
+                    let left = conditionIf.leftIsNumber ? (leftNumberInputIf.isEmpty ? "0" : leftNumberInputIf) : conditionIf.leftOperand
+                    let right = conditionIf.rightIsNumber ? (rightNumberInputIf.isEmpty ? "0" : rightNumberInputIf) : conditionIf.rightOperand
+                    block.content = "\(left) \(conditionIf.operatorType) \(right)"
+                }
+                .onAppear {
+                    let components = block.content.split(separator: " ").map { String($0) }
+                    if components.count == 3 {
+                        conditionIf = ConditionExpression(
+                            leftOperand: components[0],
+                            operatorType: components[1],
+                            rightOperand: components[2],
+                            leftIsNumber: Int(components[0]) != nil,
+                            rightIsNumber: Int(components[2]) != nil
+                        )
+                        leftNumberInputIf = conditionIf.leftIsNumber ? components[0] : ""
+                        rightNumberInputIf = conditionIf.rightIsNumber ? components[2] : ""
+                    }
+                }
+
+            case .whileCase:
                 TextField("Условие", text: $conditionInput, onEditingChanged: { isEditing in
                     if !isEditing {
                         debounceConditionUpdate()
@@ -279,8 +358,8 @@ struct BlockView: View {
     private func debounceConditionUpdate() {
         updateTask?.cancel()
         let task = DispatchWorkItem {
-            if conditionInput != block.content {
-                block.content = conditionInput
+            if variableInput != block.content {
+                block.content = variableInput
             }
         }
         updateTask = task
