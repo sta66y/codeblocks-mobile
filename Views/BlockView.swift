@@ -32,13 +32,15 @@ struct BlockView: View {
     @Binding var block: BlockModel
     @State private var variableInput: String = ""
     @State private var conditionInput: String = ""
+    @State private var leftNumberInputIf: String = ""
+    @State private var rightNumberInputIf: String = ""
     @State private var inputError: String?
     @Binding var allBlocks: [BlockModel]
     let index: Int
     @State private var updateTask: DispatchWorkItem?
     @State private var variableUpdateTask: DispatchWorkItem?
     @State private var expressions: [Expression] = []
-    @State private var condition: ConditionExpression = ConditionExpression(
+    @State private var conditionIf: ConditionExpression = ConditionExpression(
         leftOperand: "",
         operatorType: ">",
         rightOperand: "",
@@ -223,8 +225,8 @@ struct BlockView: View {
             case .ifCase:
                 HStack(spacing: 10) {
                     Picker("", selection: Binding(
-                        get: { condition.leftOperand },
-                        set: { condition.leftOperand = $0; condition.leftIsNumber = $0 == "number" }
+                        get: { conditionIf.leftOperand },
+                        set: { conditionIf.leftOperand = $0; conditionIf.leftIsNumber = $0 == "number" }
                     )) {
                         ForEach(availableVariables, id: \.self) { variable in
                             Text(variable).tag(variable)
@@ -233,14 +235,14 @@ struct BlockView: View {
                     }
                     .pickerStyle(MenuPickerStyle())
 
-                    if condition.leftIsNumber {
-                        TextField("Число", text: $conditionInput)
+                    if conditionIf.leftIsNumber {
+                        TextField("Число", text: $leftNumberInputIf)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                     }
 
-                    Picker("", selection: $condition.operatorType) {
+                    Picker("", selection: $conditionIf.operatorType) {
                         Text(">").tag(">")
                         Text("<").tag("<")
                         Text("==").tag("==")
@@ -251,8 +253,8 @@ struct BlockView: View {
                     .pickerStyle(MenuPickerStyle())
 
                     Picker("", selection: Binding(
-                        get: { condition.rightOperand },
-                        set: { condition.rightOperand = $0; condition.rightIsNumber = $0 == "number" }
+                        get: { conditionIf.rightOperand },
+                        set: { conditionIf.rightOperand = $0; conditionIf.rightIsNumber = $0 == "number" }
                     )) {
                         ForEach(availableVariables, id: \.self) { variable in
                             Text(variable).tag(variable)
@@ -261,32 +263,40 @@ struct BlockView: View {
                     }
                     .pickerStyle(MenuPickerStyle())
 
-                    if condition.rightIsNumber {
-                        TextField("Число", text: Binding(
-                            get: { conditionInput },
-                            set: { conditionInput = $0 }
-                        ))
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
+                    if conditionIf.rightIsNumber {
+                        TextField("Число", text: $rightNumberInputIf)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
                     }
                 }
-                .onChange(of: condition) { _, newCondition in
-                    let left = newCondition.leftIsNumber ? conditionInput : newCondition.leftOperand
-                    let right = newCondition.rightIsNumber ? conditionInput : newCondition.rightOperand
+                .onChange(of: conditionIf) { _, newCondition in
+                    let left = newCondition.leftIsNumber ? (leftNumberInputIf.isEmpty ? "0" : leftNumberInputIf) : newCondition.leftOperand
+                    let right = newCondition.rightIsNumber ? (rightNumberInputIf.isEmpty ? "0" : rightNumberInputIf) : newCondition.rightOperand
                     block.content = "\(left) \(newCondition.operatorType) \(right)"
+                }
+                .onChange(of: leftNumberInputIf) { _, _ in
+                    let left = conditionIf.leftIsNumber ? (leftNumberInputIf.isEmpty ? "0" : leftNumberInputIf) : conditionIf.leftOperand
+                    let right = conditionIf.rightIsNumber ? (rightNumberInputIf.isEmpty ? "0" : rightNumberInputIf) : conditionIf.rightOperand
+                    block.content = "\(left) \(conditionIf.operatorType) \(right)"
+                }
+                .onChange(of: rightNumberInputIf) { _, _ in
+                    let left = conditionIf.leftIsNumber ? (leftNumberInputIf.isEmpty ? "0" : leftNumberInputIf) : conditionIf.leftOperand
+                    let right = conditionIf.rightIsNumber ? (rightNumberInputIf.isEmpty ? "0" : rightNumberInputIf) : conditionIf.rightOperand
+                    block.content = "\(left) \(conditionIf.operatorType) \(right)"
                 }
                 .onAppear {
                     let components = block.content.split(separator: " ").map { String($0) }
                     if components.count == 3 {
-                        condition = ConditionExpression(
+                        conditionIf = ConditionExpression(
                             leftOperand: components[0],
                             operatorType: components[1],
                             rightOperand: components[2],
                             leftIsNumber: Int(components[0]) != nil,
                             rightIsNumber: Int(components[2]) != nil
                         )
-                        conditionInput = condition.leftIsNumber ? components[0] : (condition.rightIsNumber ? components[2] : "")
+                        leftNumberInputIf = conditionIf.leftIsNumber ? components[0] : ""
+                        rightNumberInputIf = conditionIf.rightIsNumber ? components[2] : ""
                     }
                 }
 
@@ -348,8 +358,8 @@ struct BlockView: View {
     private func debounceConditionUpdate() {
         updateTask?.cancel()
         let task = DispatchWorkItem {
-            if conditionInput != block.content {
-                block.content = conditionInput
+            if variableInput != block.content {
+                block.content = variableInput
             }
         }
         updateTask = task
