@@ -336,13 +336,24 @@ struct BlockView: View {
         let newVars = input.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces).lowercased() }.filter { !$0.isEmpty }
         if newVars.isEmpty {
             inputError = "Введите хотя бы одну переменную"
-        } else if Set(newVars).count != newVars.count {
+            return
+        }
+        
+        if Set(newVars).count != newVars.count {
             inputError = "Переменные не должны повторяться"
-        } else {
-            inputError = nil
-            if newVars != block.variableNames {
-                block.variableNames = newVars
+            return
+        }
+        
+        for varName in newVars {
+            if let firstChar = varName.first, !firstChar.isLetter {
+                inputError = "Имя переменной должно начинаться с буквы"
+                return
             }
+        }
+        
+        inputError = nil
+        if newVars != block.variableNames {
+            block.variableNames = newVars
         }
     }
 
