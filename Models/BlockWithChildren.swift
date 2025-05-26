@@ -71,7 +71,7 @@ struct BlockWithChildren: View {
     }
     
     private func canHaveChildren(block: BlockModel) -> Bool {
-        return Set([BlockModel.BlockType.ifCase, .whileCase, .forCase]).contains(block.type)
+        return Set([BlockModel.BlockType.ifCase, .elseIfCase, .elseCase, .whileCase, .forCase]).contains(block.type)
     }
     
     private func updateChildBlock(blockId: UUID, in blocks: inout [BlockModel], with newBlock: BlockModel) {
