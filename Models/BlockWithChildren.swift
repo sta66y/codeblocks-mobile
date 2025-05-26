@@ -2,16 +2,18 @@ import SwiftUI
 
 struct BlockWithChildren: View {
     @Binding var block: BlockModel
-    @State private var showingBlockSelection = false
     @Binding var allBlocks: [BlockModel]
     let index: Int
-    
+    @State private var showingBlockSelection = false
+    @State private var blockToAddTo: UUID?
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 BlockView(block: $block, allBlocks: $allBlocks, index: index)
-                if Set([BlockModel.BlockType.ifCase, .whileCase, .forCase]).contains(block.type) {
+                if canHaveChildren(block: block) {
                     Button(action: {
+                        blockToAddTo = block.id
                         showingBlockSelection = true
                     }) {
                         Image(systemName: "plus")
@@ -19,33 +21,47 @@ struct BlockWithChildren: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingBlockSelection) {
-                BlockSelectionSheet(parentBlockId: block.id, onSelect: { selectedBlock in
-                    var newBlock = BlockModel(
-                        name: selectedBlock.name,
-                        type: selectedBlock.type,
-                        color: selectedBlock.color,
-                        content: selectedBlock.content,
-                        variableNames: selectedBlock.variableNames,
-                        variable: selectedBlock.variable,
-                        operands: selectedBlock.operands
-                    )
-                    
-                    if let index = allBlocks.firstIndex(where: { $0.id == block.id }) {
-                        var updatedBlock = deepCopyBlock(allBlocks[index])
-                        BlockRepository.addBlock(newBlock, toChildrenOf: &updatedBlock)
-                        allBlocks[index] = updatedBlock
-                    }
-                    showingBlockSelection = false
-                })
-            }
             
-            if !block.children.isEmpty {
-                ForEach($block.children, id: \.id) { $child in
-                    BlockWithChildren(block: $child, allBlocks: $allBlocks, index: index)
-                        .padding(.leading, 20)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    if !block.children.isEmpty {
+                        ForEach($block.children.indices, id: \.self) { childIndex in
+                            BlockWithChildren(
+                                block: $block.children[childIndex],
+                                allBlocks: $allBlocks,
+                                index: index
+                            )
+                            .padding(.leading, 20)
+                        }
+                    }
                 }
             }
+        }
+        .sheet(isPresented: $showingBlockSelection) {
+            BlockSelectionSheet(parentBlockId: block.id, onSelect: { selectedBlock in
+                var newBlock = BlockModel(
+                    name: selectedBlock.name,
+                    type: selectedBlock.type,
+                    color: selectedBlock.color,
+                    content: selectedBlock.content,
+                    variableNames: selectedBlock.variableNames,
+                    variable: selectedBlock.variable,
+                    operands: selectedBlock.operands
+                )
+                
+                if let blockId = blockToAddTo {
+                    if block.id == blockId && block.id == allBlocks.first(where: { $0.id == blockId })?.id {
+                        if let blockIndex = allBlocks.firstIndex(where: { $0.id == blockId }) {
+                            allBlocks[blockIndex].children.append(newBlock)
+                        }
+                    } else {
+                        updateChildBlock(blockId: blockId, in: &allBlocks, with: newBlock)
+                    }
+                }
+                
+                blockToAddTo = nil
+                showingBlockSelection = false
+            })
         }
         .onChange(of: block.variableNames) { oldValue, newValue in
             if block.type == .declareVars {
@@ -54,16 +70,17 @@ struct BlockWithChildren: View {
         }
     }
     
-    private func deepCopyBlock(_ block: BlockModel) -> BlockModel {
-        return BlockModel(
-            name: block.name,
-            type: block.type,
-            color: block.color,
-            content: block.content,
-            children: block.children.map { deepCopyBlock($0) },
-            variableNames: block.variableNames,
-            variable: block.variable,
-            operands: block.operands.map { deepCopyBlock($0) }
-        )
+    private func canHaveChildren(block: BlockModel) -> Bool {
+        return Set([BlockModel.BlockType.ifCase, .whileCase, .forCase]).contains(block.type)
+    }
+    
+    private func updateChildBlock(blockId: UUID, in blocks: inout [BlockModel], with newBlock: BlockModel) {
+        for i in blocks.indices {
+            if blocks[i].id == blockId {
+                blocks[i].children.append(newBlock)
+                return
+            }
+            updateChildBlock(blockId: blockId, in: &blocks[i].children, with: newBlock)
+        }
     }
 }
