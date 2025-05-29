@@ -222,7 +222,7 @@ struct BlockView: View {
                     }
                 }
 
-            case .ifCase:
+            case .ifCase, .elseIfCase:
                 HStack(spacing: 10) {
                     Picker("", selection: Binding(
                         get: { conditionIf.leftOperand },
@@ -299,6 +299,9 @@ struct BlockView: View {
                         rightNumberInputIf = conditionIf.rightIsNumber ? components[2] : ""
                     }
                 }
+
+            case .elseCase:
+                EmptyView()
 
             case .whileCase:
                 TextField("Условие", text: $conditionInput, onEditingChanged: { isEditing in
