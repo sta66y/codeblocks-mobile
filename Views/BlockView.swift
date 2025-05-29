@@ -324,9 +324,9 @@ struct BlockView: View {
                         )
                     }
                 }
-
-            case .ifCase:
-                HStack(spacing: 8) {
+              
+            case .ifCase, .elseIfCase:
+                HStack(spacing: 10) {
                     Picker("", selection: Binding(
                         get: { conditionIf.leftOperand },
                         set: { conditionIf.leftOperand = $0; conditionIf.leftIsNumber = $0 == "number" }
@@ -415,22 +415,9 @@ struct BlockView: View {
                     }
                 }
 
-            case .whileCase:
-                TextField("Условие", text: $conditionInput, onEditingChanged: { isEditing in
-                    if !isEditing { debounceConditionUpdate() }
-                })
-                .textFieldStyle(.roundedBorder)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .padding(.horizontal, 8)
-                .background(RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.1)))
-                .onAppear { conditionInput = block.content }
-
-            case .forCase:
-                ForBlockView(content: $conditionInput)
-                    .onAppear { conditionInput = block.content }
-                    .onChange(of: conditionInput) { _, _ in debounceConditionUpdate() }
-
+            case .elseCase:
+                EmptyView()
+              
             case .printCase:
                 TextField("Что вывести", text: $block.content)
                     .textFieldStyle(.roundedBorder)

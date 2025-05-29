@@ -5,23 +5,89 @@ typealias Context = [String: Int]
 
 func interpret(blocks: [BlockModel], context: inout Context) -> [String] {
     var output: [String] = []
-    for block in blocks {
+    var i = 0
+    while i < blocks.count {
+        let block = blocks[i]
         switch block.type {
+        case .ifCase:
+            i += handleIfChain(blocks: blocks, startingAt: i, context: &context, output: &output)
+        case .elseIfCase:
+            output.append("Ошибка: блок 'else if' должен следовать за 'if' или 'else if'")
+            i += 1
+        case .elseCase:
+            output.append("Ошибка: блок 'else' должен следовать за 'if' или 'else if'")
+            i += 1
         case .declareVars:
             handleDeclareVars(block: block, context: &context, output: &output)
+            i += 1
         case .assign:
             handleAssign(block: block, context: &context, output: &output)
+            i += 1
         case .operatorCase:
             handleOperatorCase(block: block, context: &context, output: &output)
-        case .ifCase:
-            handleIfCase(block: block, context: &context, output: &output)
+            i += 1
         case .printCase:
             handlePrintCase(block: block, context: context, output: &output)
+            i += 1
         default:
-            break
+            i += 1
         }
     }
     return output
+}
+
+func handleIfChain(blocks: [BlockModel], startingAt index: Int, context: inout Context, output: inout [String]) -> Int {
+    var i = index
+    var conditionMet = false
+    var isIfChainStarted = false
+
+    while i < blocks.count {
+        let block = blocks[i]
+        if block.type == .ifCase {
+            isIfChainStarted = true
+            if !conditionMet {
+                let condition = evaluateCondition(condition: block.content, context: context, output: &output)
+                output.append("Условие \(block.content): \(condition)")
+                if condition {
+                    let childOutput = interpret(blocks: block.children, context: &context)
+                    output.append(contentsOf: childOutput)
+                    conditionMet = true
+                }
+            }
+            i += 1
+        } else if block.type == .elseIfCase {
+            if !isIfChainStarted {
+                output.append("Ошибка: блок 'else if' должен следовать за 'if' или 'else if'")
+                i += 1
+                continue
+            }
+            if !conditionMet {
+                let condition = evaluateCondition(condition: block.content, context: context, output: &output)
+                output.append("Условие \(block.content): \(condition)")
+                if condition {
+                    let childOutput = interpret(blocks: block.children, context: &context)
+                    output.append(contentsOf: childOutput)
+                    conditionMet = true
+                }
+            }
+            i += 1
+        } else if block.type == .elseCase {
+            if !isIfChainStarted {
+                output.append("Ошибка: блок 'else' должен следовать за 'if' или 'else if'")
+                i += 1
+                break
+            }
+            if !conditionMet {
+                let childOutput = interpret(blocks: block.children, context: &context)
+                output.append(contentsOf: childOutput)
+            }
+            i += 1
+            break
+        } else {
+            break
+        }
+    }
+    return i - index
 }
 
 func handleDeclareVars(block: BlockModel, context: inout Context, output: inout [String]) {
@@ -56,15 +122,6 @@ func handleOperatorCase(block: BlockModel, context: inout Context, output: inout
     
     context[block.variable] = result.value
     output.append("\(block.variable) = \(result.value)")
-}
-
-func handleIfCase(block: BlockModel, context: inout Context, output: inout [String]) {
-    let condition = evaluateCondition(condition: block.content, context: context, output: &output)
-    output.append("Условие \(block.content): \(condition)")
-    if condition {
-        let childOutput = interpret(blocks: block.children, context: &context)
-        output.append(contentsOf: childOutput)
-    }
 }
 
 func handlePrintCase(block: BlockModel, context: Context, output: inout [String]) {
