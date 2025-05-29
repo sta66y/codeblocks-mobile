@@ -153,10 +153,9 @@ func handlePrintCase(block: BlockModel, context: Context, output: inout [String]
 }
 
 func evaluateExpression(expression: String, context: Context) -> Int {
-    let cleanExpression = expression.trimmingCharacters(in: CharacterSet(charactersIn: "()"))
-    if let value = Int(cleanExpression) {
+    if let value = Int(expression) {
         return value
-    } else if let value = context[cleanExpression] {
+    } else if let value = context[expression] {
         return value
     } else {
         return 0
@@ -166,121 +165,70 @@ func evaluateExpression(expression: String, context: Context) -> Int {
 func evaluateOperatorExpression(operands: [BlockModel], operators: [String], context: Context, output: inout [String]) -> (value: Int, hasError: Bool) {
     var values: [Int] = []
     var ops = operators
-    var parenGroups: [(start: Int, end: Int)] = []
-    var currentIndex = 0
     
-
-    while currentIndex < operands.count {
-        let content = operands[currentIndex].content
-        if content.hasPrefix("(") {
-            var openCount = 1
-            var endIndex = currentIndex + 1
-            while endIndex < operands.count && openCount > 0 {
-                let nextContent = operands[endIndex].content
-                if nextContent.hasPrefix("(") {
-                    openCount += 1
-                }
-                if nextContent.hasSuffix(")") {
-                    openCount -= 1
-                }
-                endIndex += 1
-            }
-            if openCount == 0 && endIndex <= operands.count {
-                parenGroups.append((start: currentIndex, end: endIndex - 1))
-                currentIndex = endIndex
-            } else {
-                output.append("Ошибка: несбалансированные скобки")
-                return (0, true)
-            }
-        } else {
-            values.append(evaluateExpression(expression: content, context: context))
-            currentIndex += 1
-        }
+    for operand in operands {
+        let value = evaluateExpression(expression: operand.content, context: context)
+        values.append(value)
     }
     
-    if ops.isEmpty && values.count == 1 && parenGroups.isEmpty {
+    if ops.isEmpty && values.count == 1 {
         return (values[0], false)
     }
     
-    if ops.count < values.count + parenGroups.count - 1 {
-        while ops.count < values.count + parenGroups.count - 1 {
+    if ops.count < values.count - 1 {
+        while ops.count < values.count - 1 {
             ops.append("+")
         }
-    } else if ops.count > values.count + parenGroups.count - 1 {
-        ops = Array(ops.prefix(values.count + parenGroups.count - 1))
+    } else if ops.count > values.count - 1 {
+        ops = Array(ops.prefix(values.count - 1))
     }
     
     let precedence: [String: Int] = [
-        "+": 1, "Сложить": 1,
-        "-": 1, "Вычесть": 1,
-        "*": 2, "Умножить": 2,
-        "/": 2, "Разделить": 2,
+        "+": 1,
+        "Сложить": 1,
+        "-": 1,
+        "Вычесть": 1,
+        "*": 2,
+        "Умножить": 2,
+        "/": 2,
+        "Разделить": 2,
         "%": 2
     ]
     
     var valueStack: [Int] = []
     var opStack: [String] = []
-    var operandIndex = 0
-    var operatorIndex = 0
-    var parenIndex = 0
     
-    for i in 0..<(values.count + parenGroups.count) {
-        if parenIndex < parenGroups.count && parenGroups[parenIndex].start == i {
-            let group = parenGroups[parenIndex]
-            let subOperands = Array(operands[group.start...group.end]).map { BlockModel(
-                name: $0.name,
-                type: $0.type,
-                color: $0.color,
-                content: $0.content.trimmingCharacters(in: CharacterSet(charactersIn: "()")),
-                children: $0.children,
-                variableNames: $0.variableNames,
-                variable: $0.variable,
-                operands: $0.operands,
-                operators: $0.operators
-            )}
-            let subOperators = Array(ops[operatorIndex..<(operatorIndex + group.end - group.start)])
-            operatorIndex += group.end - group.start
-            
-            let subResult = evaluateOperatorExpression(operands: subOperands, operators: subOperators, context: context, output: &output)
-            if subResult.hasError {
-                return (0, true)
-            }
-            valueStack.append(subResult.value)
-            parenIndex += 1
-        } else {
-            valueStack.append(values[operandIndex])
-            operandIndex += 1
+    valueStack.append(values[0])
+    
+    for i in 0..<ops.count {
+        let currentOp = ops[i]
+        let nextValue = values[i + 1]
+        
+        guard precedence[currentOp] != nil else {
+            output.append("Ошибка: неизвестный оператор \(currentOp)")
+            return (0, true)
         }
         
-        if operatorIndex < ops.count {
-            let currentOp = ops[operatorIndex]
-            operatorIndex += 1
-            
-            guard precedence[currentOp] != nil else {
-                output.append("Ошибка: неизвестный оператор \(currentOp)")
+        while !opStack.isEmpty,
+              let lastOp = opStack.last,
+              let lastPrecedence = precedence[lastOp],
+              let currentPrecedence = precedence[currentOp],
+              lastPrecedence >= currentPrecedence {
+            guard let op = opStack.popLast(),
+                  let operand2 = valueStack.popLast(),
+                  let operand1 = valueStack.popLast() else {
+                output.append("Ошибка: некорректное выражение")
                 return (0, true)
             }
-            
-            while !opStack.isEmpty,
-                  let lastOp = opStack.last,
-                  let lastPrecedence = precedence[lastOp],
-                  let currentPrecedence = precedence[currentOp],
-                  lastPrecedence >= currentPrecedence {
-                guard let op = opStack.popLast(),
-                      let operand2 = valueStack.popLast(),
-                      let operand1 = valueStack.popLast() else {
-                    output.append("Ошибка: некорректное выражение")
-                    return (0, true)
-                }
-                let (result, hasError) = performOperation(operand1: operand1, operatorType: op, operand2: operand2, output: &output)
-                if hasError {
-                    return (0, true)
-                }
-                valueStack.append(result)
+            let (result, hasError) = performOperation(operand1: operand1, operatorType: op, operand2: operand2, output: &output)
+            if hasError {
+                return (0, true)
             }
-            
-            opStack.append(currentOp)
+            valueStack.append(result)
         }
+        
+        opStack.append(currentOp)
+        valueStack.append(nextValue)
     }
     
     while !opStack.isEmpty {

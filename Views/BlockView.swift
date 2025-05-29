@@ -4,15 +4,11 @@ struct Expression: Equatable {
     var operand: String
     var operatorType: String
     var isNumber: Bool
-    var hasLeftParenthesis: Bool
-    var hasRightParenthesis: Bool
     
     static func == (lhs: Expression, rhs: Expression) -> Bool {
-        lhs.operand == rhs.operand &&
-        lhs.operatorType == rhs.operatorType &&
-        lhs.isNumber == rhs.isNumber &&
-        lhs.hasLeftParenthesis == rhs.hasLeftParenthesis &&
-        lhs.hasRightParenthesis == rhs.hasRightParenthesis
+        return lhs.operand == rhs.operand &&
+               lhs.operatorType == rhs.operatorType &&
+               lhs.isNumber == rhs.isNumber
     }
 }
 
@@ -24,110 +20,11 @@ struct ConditionExpression: Equatable {
     var rightIsNumber: Bool
     
     static func == (lhs: ConditionExpression, rhs: ConditionExpression) -> Bool {
-        lhs.leftOperand == rhs.leftOperand &&
-        lhs.operatorType == rhs.operatorType &&
-        lhs.rightOperand == rhs.rightOperand &&
-        lhs.leftIsNumber == rhs.leftIsNumber &&
-        lhs.rightIsNumber == rhs.rightIsNumber
-    }
-}
-
-struct OperandRowView: View {
-    @Binding var expression: Expression
-    @Binding var operandContent: String
-    let availableVariables: [String]
-    let isLast: Bool
-    let blockColor: Color
-    @State private var error: String?
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
-                Button(action: { expression.hasLeftParenthesis.toggle() }) {
-                    Text("(")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(expression.hasLeftParenthesis ? .white : .gray)
-                        .frame(width: 24, height: 24)
-                        .background(expression.hasLeftParenthesis ? blockColor : Color.gray.opacity(0.2))
-                        .clipShape(Circle())
-                }
-
-                Picker("", selection: Binding(
-                    get: { expression.operand },
-                    set: { newValue in
-                        expression.operand = newValue
-                        expression.isNumber = newValue == "number"
-                        operandContent = newValue == "number" ? "" : newValue
-                        validateNumberInput()
-                    }
-                )) {
-                    ForEach(availableVariables, id: \.self) { variable in
-                        Text(variable).tag(variable)
-                    }
-                    Text("Число").tag("number")
-                }
-                .pickerStyle(.menu)
-                .tint(blockColor)
-
-                if expression.isNumber {
-                    TextField("Число", text: $operandContent, onEditingChanged: { _ in validateNumberInput() })
-                        .textFieldStyle(.roundedBorder)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .keyboardType(.numberPad)
-                        .frame(maxWidth: 100)
-                        .background(RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.1)))
-                }
-
-                Button(action: {
-                    if expression.hasLeftParenthesis {
-                        expression.hasRightParenthesis.toggle()
-                    }
-                }) {
-                    Text(")")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(expression.hasRightParenthesis && expression.hasLeftParenthesis ? .white : .gray)
-                        .frame(width: 24, height: 24)
-                        .background(expression.hasRightParenthesis && expression.hasLeftParenthesis ? blockColor : Color.gray.opacity(0.2))
-                        .clipShape(Circle())
-                }
-                .disabled(!expression.hasLeftParenthesis)
-
-                if !isLast {
-                    Picker("", selection: $expression.operatorType) {
-                        Text("+").tag("+")
-                        Text("-").tag("-")
-                        Text("*").tag("*")
-                        Text("/").tag("/")
-                        Text("%").tag("%")
-                    }
-                    .pickerStyle(.menu)
-                    .tint(blockColor)
-                }
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.05)))
-
-            if let error {
-                Text(error)
-                    .foregroundColor(.red)
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-            }
-        }
-    }
-
-    private func validateNumberInput() {
-        if expression.isNumber && !operandContent.isEmpty {
-            if Double(operandContent) == nil {
-                error = "Введите число"
-            } else {
-                error = nil
-            }
-        } else {
-            error = nil
-        }
+        return lhs.leftOperand == rhs.leftOperand &&
+               lhs.operatorType == rhs.operatorType &&
+               lhs.rightOperand == rhs.rightOperand &&
+               lhs.leftIsNumber == rhs.leftIsNumber &&
+               lhs.rightIsNumber == rhs.rightIsNumber
     }
 }
 
@@ -155,7 +52,6 @@ struct BlockView: View {
         Array(Set(allBlocks.prefix(upTo: index)
             .filter { $0.type == .declareVars }
             .flatMap { $0.variableNames }))
-            .sorted()
     }
 
     var body: some View {
@@ -166,29 +62,30 @@ struct BlockView: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(block.color)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .cornerRadius(6)
 
             switch block.type {
             case .declareVars:
                 VStack(alignment: .leading, spacing: 4) {
                     TextField("Переменные (через запятую)", text: $variableInput)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                        .padding(.horizontal, 8)
-                        .background(RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.1)))
-                        .onChange(of: variableInput) { debounceVariableUpdate() }
-                        .onAppear { variableInput = block.variableNames.joined(separator: ", ") }
+                        .onChange(of: variableInput) {
+                            debounceVariableUpdate()
+                        }
+                        .onAppear {
+                            variableInput = block.variableNames.joined(separator: ", ")
+                        }
                     if let error = inputError {
                         Text(error)
                             .foregroundColor(.red)
                             .font(.caption)
-                            .padding(.horizontal, 8)
                     }
                 }
 
             case .assign:
-                HStack(spacing: 8) {
+                HStack {
                     if availableVariables.isEmpty {
                         Text("Нет доступных переменных")
                             .foregroundColor(.gray)
@@ -199,24 +96,19 @@ struct BlockView: View {
                                 Text(variable).tag(variable)
                             }
                         }
-                        .pickerStyle(.menu)
-                        .tint(block.color)
-                        Text("=")
-                        TextField("Выражение", text: $block.content)
-                            .textFieldStyle(.roundedBorder)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                            .disabled(availableVariables.isEmpty)
-                            .background(RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.1)))
+                        .pickerStyle(MenuPickerStyle())
                     }
+                    Text("=")
+                    TextField("Выражение", text: $block.content)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .disabled(availableVariables.isEmpty)
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.05)))
 
             case .operatorCase:
-                ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: 8) {
+                ScrollView(.horizontal) {
+                    HStack(spacing: 10) {
                         if !availableVariables.isEmpty {
                             Picker("", selection: $block.variable) {
                                 Text("Выберите переменную").tag("")
@@ -224,107 +116,112 @@ struct BlockView: View {
                                     Text(variable).tag(variable)
                                 }
                             }
-                            .pickerStyle(.menu)
-                            .tint(block.color)
+                            .pickerStyle(MenuPickerStyle())
                             Text("=")
                         } else {
-                            Text("Нет доступных переменных")
-                                .foregroundColor(.gray)
+                            Text("Нет доступных переменных").foregroundColor(.gray)
                         }
 
                         ForEach(expressions.indices, id: \.self) { index in
-                            OperandRowView(
-                                expression: $expressions[index],
-                                operandContent: Binding(
-                                    get: { index < block.operands.count ? block.operands[index].content : "" },
+                            HStack {
+                                Picker("", selection: Binding(
+                                    get: { expressions[index].operand },
                                     set: { newValue in
+                                        expressions[index].operand = newValue
+                                        expressions[index].isNumber = newValue == "number"
+
                                         if index < block.operands.count {
-                                            block.operands[index].content = newValue
+                                            block.operands[index].content = newValue == "number" ? "" : newValue
+                                        } else {
+                                            block.operands.append(BlockModel(
+                                                name: "",
+                                                type: .operatorCase,
+                                                color: block.color,
+                                                content: newValue == "number" ? "" : newValue
+                                            ))
                                         }
                                     }
-                                ),
-                                availableVariables: availableVariables,
-                                isLast: index == expressions.count - 1,
-                                blockColor: block.color
-                            )
+                                )) {
+                                    ForEach(availableVariables, id: \.self) { variable in
+                                        Text(variable).tag(variable)
+                                    }
+                                    Text("Число").tag("number")
+                                }
+                                .pickerStyle(MenuPickerStyle())
+
+                                if expressions[index].isNumber {
+                                    TextField("Число", text: Binding(
+                                        get: { index < block.operands.count ? block.operands[index].content : "" },
+                                        set: { newValue in
+                                            if index < block.operands.count {
+                                                block.operands[index].content = newValue
+                                            }
+                                        }
+                                    ))
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                                }
+
+                                if index < expressions.count - 1 {
+                                    Picker("", selection: Binding(
+                                        get: { expressions[index].operatorType },
+                                        set: { expressions[index].operatorType = $0 }
+                                    )) {
+                                        Text("+").tag("+")
+                                        Text("-").tag("-")
+                                        Text("*").tag("*")
+                                        Text("/").tag("/")
+                                        Text("%").tag("%")
+                                    }
+                                    .pickerStyle(MenuPickerStyle())
+                                }
+                            }
                         }
 
                         Button(action: {
-                            let defaultOperand = availableVariables.first ?? ""
                             expressions.append(Expression(
-                                operand: defaultOperand,
+                                operand: availableVariables.first ?? "",
                                 operatorType: "+",
-                                isNumber: false,
-                                hasLeftParenthesis: false,
-                                hasRightParenthesis: false
+                                isNumber: false
                             ))
-                            block.operands.append(BlockModel(
-                                name: "",
-                                type: .operatorCase,
-                                color: block.color,
-                                content: defaultOperand
-                            ))
+                            block.operands.append(BlockModel(name: "", type: .operatorCase, color: block.color, content: availableVariables.first ?? ""))
                         }) {
                             Text("Добавить операнд")
-                                .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(.blue)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(RoundedRectangle(cornerRadius: 6).fill(Color.blue.opacity(0.1)))
                         }
                     }
-                    .padding(.horizontal, 8)
                 }
-                .frame(height: 80)
-                .background(RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.05)))
+                .frame(height: 50)
                 .onAppear {
                     if expressions.isEmpty {
                         expressions = block.operands.enumerated().map { index, operand in
-                            let content = operand.content
-                            let hasLeft = content.hasPrefix("(")
-                            let hasRight = content.hasSuffix(")")
-                            let cleanContent = content.trimmingCharacters(in: CharacterSet(charactersIn: "()"))
-                            return Expression(
-                                operand: cleanContent.isEmpty ? availableVariables.first ?? "" : cleanContent,
+                            Expression(
+                                operand: operand.content,
                                 operatorType: index < block.operators.count ? block.operators[index] : "+",
-                                isNumber: Double(cleanContent) != nil,
-                                hasLeftParenthesis: hasLeft,
-                                hasRightParenthesis: hasRight
+                                isNumber: Double(operand.content) != nil
                             )
                         }
+
                         if expressions.isEmpty {
                             let defaultOperand = availableVariables.first ?? ""
-                            expressions.append(Expression(
-                                operand: defaultOperand,
-                                operatorType: "+",
-                                isNumber: false,
-                                hasLeftParenthesis: false,
-                                hasRightParenthesis: false
-                            ))
-                            block.operands.append(BlockModel(
-                                name: "",
-                                type: .operatorCase,
-                                color: block.color,
-                                content: defaultOperand
-                            ))
+                            expressions.append(Expression(operand: defaultOperand, operatorType: "+", isNumber: false))
+                            block.operands.append(BlockModel(name: "", type: .operatorCase, color: block.color, content: defaultOperand))
                         }
                     }
                 }
                 .onChange(of: expressions) { _, newExpressions in
                     block.operators = newExpressions.dropLast().map { $0.operatorType }
                     block.operands = newExpressions.enumerated().map { index, expr in
-                        var content = expr.isNumber ? (expr.operand == "number" ? "" : expr.operand) : expr.operand
-                        if expr.hasLeftParenthesis { content = "(" + content }
-                        if expr.hasRightParenthesis { content = content + ")" }
-                        return BlockModel(
+                        BlockModel(
                             name: "",
                             type: .operatorCase,
                             color: block.color,
-                            content: content
+                            content: expr.isNumber ? (expr.operand == "number" ? "" : expr.operand) : expr.operand
                         )
                     }
                 }
-              
+
             case .ifCase, .elseIfCase:
                 HStack(spacing: 10) {
                     Picker("", selection: Binding(
@@ -336,17 +233,13 @@ struct BlockView: View {
                         }
                         Text("Число").tag("number")
                     }
-                    .pickerStyle(.menu)
-                    .tint(block.color)
+                    .pickerStyle(MenuPickerStyle())
 
                     if conditionIf.leftIsNumber {
                         TextField("Число", text: $leftNumberInputIf)
-                            .textFieldStyle(.roundedBorder)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
-                            .keyboardType(.numberPad)
-                            .frame(maxWidth: 100)
-                            .background(RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.1)))
                     }
 
                     Picker("", selection: $conditionIf.operatorType) {
@@ -357,8 +250,7 @@ struct BlockView: View {
                         Text(">=").tag(">=")
                         Text("<=").tag("<=")
                     }
-                    .pickerStyle(.menu)
-                    .tint(block.color)
+                    .pickerStyle(MenuPickerStyle())
 
                     Picker("", selection: Binding(
                         get: { conditionIf.rightOperand },
@@ -369,22 +261,15 @@ struct BlockView: View {
                         }
                         Text("Число").tag("number")
                     }
-                    .pickerStyle(.menu)
-                    .tint(block.color)
+                    .pickerStyle(MenuPickerStyle())
 
                     if conditionIf.rightIsNumber {
                         TextField("Число", text: $rightNumberInputIf)
-                            .textFieldStyle(.roundedBorder)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
-                            .keyboardType(.numberPad)
-                            .frame(maxWidth: 100)
-                            .background(RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.1)))
                     }
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.05)))
                 .onChange(of: conditionIf) { _, newCondition in
                     let left = newCondition.leftIsNumber ? (leftNumberInputIf.isEmpty ? "0" : leftNumberInputIf) : newCondition.leftOperand
                     let right = newCondition.rightIsNumber ? (rightNumberInputIf.isEmpty ? "0" : rightNumberInputIf) : newCondition.rightOperand
@@ -407,8 +292,8 @@ struct BlockView: View {
                             leftOperand: components[0],
                             operatorType: components[1],
                             rightOperand: components[2],
-                            leftIsNumber: Double(components[0]) != nil,
-                            rightIsNumber: Double(components[2]) != nil
+                            leftIsNumber: Int(components[0]) != nil,
+                            rightIsNumber: Int(components[2]) != nil
                         )
                         leftNumberInputIf = conditionIf.leftIsNumber ? components[0] : ""
                         rightNumberInputIf = conditionIf.rightIsNumber ? components[2] : ""
@@ -417,14 +302,12 @@ struct BlockView: View {
 
             case .elseCase:
                 EmptyView()
-              
+
             case .printCase:
                 TextField("Что вывести", text: $block.content)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
-                    .padding(.horizontal, 8)
-                    .background(RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.1)))
             }
         }
         .padding(.vertical, 4)
@@ -436,27 +319,30 @@ struct BlockView: View {
             inputError = "Введите хотя бы одну переменную"
             return
         }
+        
         if Set(newVars).count != newVars.count {
             inputError = "Переменные не должны повторяться"
             return
         }
+        
         for varName in newVars {
             if let firstChar = varName.first, !firstChar.isLetter {
                 inputError = "Имя переменной должно начинаться с буквы"
                 return
             }
-            if varName.contains(" ") {
-                inputError = "Имя переменной не должно содержать пробелы"
-                return
-            }
         }
+        
         inputError = nil
-        block.variableNames = newVars
+        if newVars != block.variableNames {
+            block.variableNames = newVars
+        }
     }
 
     private func debounceVariableUpdate() {
         variableUpdateTask?.cancel()
-        let task = DispatchWorkItem { self.updateVariableNames(from: self.variableInput) }
+        let task = DispatchWorkItem {
+            self.updateVariableNames(from: self.variableInput)
+        }
         variableUpdateTask = task
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: task)
     }
@@ -464,8 +350,8 @@ struct BlockView: View {
     private func debounceConditionUpdate() {
         updateTask?.cancel()
         let task = DispatchWorkItem {
-            if self.conditionInput != self.block.content {
-                self.block.content = self.conditionInput
+            if variableInput != block.content {
+                block.content = variableInput
             }
         }
         updateTask = task
