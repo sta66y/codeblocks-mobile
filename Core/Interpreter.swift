@@ -11,6 +11,12 @@ func interpret(blocks: [BlockModel], context: inout Context) -> [String] {
         switch block.type {
         case .ifCase:
             i += handleIfChain(blocks: blocks, startingAt: i, context: &context, output: &output)
+        case .elseIfCase:
+            output.append("Ошибка: блок 'else if' должен следовать за 'if' или 'else if'")
+            i += 1
+        case .elseCase:
+            output.append("Ошибка: блок 'else' должен следовать за 'if' или 'else if'")
+            i += 1
         case .declareVars:
             handleDeclareVars(block: block, context: &context, output: &output)
             i += 1
@@ -33,9 +39,28 @@ func interpret(blocks: [BlockModel], context: inout Context) -> [String] {
 func handleIfChain(blocks: [BlockModel], startingAt index: Int, context: inout Context, output: inout [String]) -> Int {
     var i = index
     var conditionMet = false
+    var isIfChainStarted = false
+
     while i < blocks.count {
         let block = blocks[i]
-        if block.type == .ifCase || block.type == .elseIfCase {
+        if block.type == .ifCase {
+            isIfChainStarted = true
+            if !conditionMet {
+                let condition = evaluateCondition(condition: block.content, context: context, output: &output)
+                output.append("Условие \(block.content): \(condition)")
+                if condition {
+                    let childOutput = interpret(blocks: block.children, context: &context)
+                    output.append(contentsOf: childOutput)
+                    conditionMet = true
+                }
+            }
+            i += 1
+        } else if block.type == .elseIfCase {
+            if !isIfChainStarted {
+                output.append("Ошибка: блок 'else if' должен следовать за 'if' или 'else if'")
+                i += 1
+                continue
+            }
             if !conditionMet {
                 let condition = evaluateCondition(condition: block.content, context: context, output: &output)
                 output.append("Условие \(block.content): \(condition)")
@@ -47,6 +72,11 @@ func handleIfChain(blocks: [BlockModel], startingAt index: Int, context: inout C
             }
             i += 1
         } else if block.type == .elseCase {
+            if !isIfChainStarted {
+                output.append("Ошибка: блок 'else' должен следовать за 'if' или 'else if'")
+                i += 1
+                break
+            }
             if !conditionMet {
                 let childOutput = interpret(blocks: block.children, context: &context)
                 output.append(contentsOf: childOutput)
