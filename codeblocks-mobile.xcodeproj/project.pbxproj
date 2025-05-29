@@ -61,8 +61,6 @@
 			isa = PBXGroup;
 			children = (
 				8EE466372DDCE1DA003CCE71 /* BlockModel.swift */,
-				8EE466382DDCE1DA003CCE71 /* BlockSelectionSheet.swift */,
-				8EE466392DDCE1DA003CCE71 /* BlockWithChildren.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -84,6 +82,8 @@
 				8EE466402DDCE1DA003CCE71 /* MainTabView.swift */,
 				8EE466412DDCE1DA003CCE71 /* ResultView.swift */,
 				8EE466422DDCE1DA003CCE71 /* WelcomeView.swift */,
+				8EE466382DDCE1DA003CCE71 /* BlockSelectionSheet.swift */,
+				8EE466392DDCE1DA003CCE71 /* BlockWithChildren.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
