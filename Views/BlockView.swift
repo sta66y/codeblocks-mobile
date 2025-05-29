@@ -303,28 +303,6 @@ struct BlockView: View {
             case .elseCase:
                 EmptyView()
 
-            case .whileCase:
-                TextField("Условие", text: $conditionInput, onEditingChanged: { isEditing in
-                    if !isEditing {
-                        debounceConditionUpdate()
-                    }
-                })
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .onAppear {
-                    conditionInput = block.content
-                }
-
-            case .forCase:
-                ForBlockView(content: $conditionInput)
-                    .onAppear {
-                        conditionInput = block.content
-                    }
-                    .onChange(of: conditionInput) { _, newValue in
-                        debounceConditionUpdate()
-                    }
-
             case .printCase:
                 TextField("Что вывести", text: $block.content)
                     .textFieldStyle(RoundedBorderTextFieldStyle())

@@ -19,8 +19,6 @@ struct BlockModel: Identifiable {
         case ifCase
         case elseIfCase
         case elseCase
-        case whileCase
-        case forCase
         case printCase
         case operatorCase
     }

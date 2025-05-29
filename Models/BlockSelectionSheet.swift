@@ -44,18 +44,6 @@ struct BlockSelectionSheet: View {
                     }
                 }
                 
-                Section(header: Text("Циклы").font(.headline)) {
-                    ForEach(BlockRepository.cycles) { block in
-                        Button(action: {
-                            onSelect(block)
-                            dismiss()
-                        }) {
-                            Text(block.name)
-                                .foregroundColor(block.color)
-                        }
-                    }
-                }
-                
                 Section(header: Text("Взаимодействия").font(.headline)) {
                     ForEach(BlockRepository.interactions) { block in
                         Button(action: {

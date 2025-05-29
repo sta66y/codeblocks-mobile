@@ -14,7 +14,7 @@ struct BlockWithChildren: View {
         }
         .sheet(isPresented: $showingBlockSelection) {
             BlockSelectionSheet(parentBlockId: block.id, onSelect: { selectedBlock in
-                var newBlock = BlockModel(
+                let newBlock = BlockModel(
                     name: selectedBlock.name,
                     type: selectedBlock.type,
                     color: selectedBlock.color,
@@ -97,7 +97,7 @@ struct BlockWithChildren: View {
     }
     
     func canHaveChildren(block: BlockModel) -> Bool {
-        return Set([BlockModel.BlockType.ifCase, .elseIfCase, .elseCase, .whileCase, .forCase]).contains(block.type)
+        return Set([BlockModel.BlockType.ifCase, .elseIfCase, .elseCase]).contains(block.type)
     }
     
     func deleteChild(at index: Int) {
