@@ -49,20 +49,13 @@ func handleOperatorCase(block: BlockModel, context: inout Context, output: inout
         return
     }
     
-    var result = evaluateExpression(expression: block.operands[0].content, context: context)
-    
-    for i in 1..<block.operands.count {
-        let operand = evaluateExpression(expression: block.operands[i].content, context: context)
-        let operatorType = i - 1 < block.operators.count ? block.operators[i - 1] : "+"
-        let (operationResult, hasError) = performOperation(operand1: result, operatorType: operatorType, operand2: operand, output: &output)
-        if hasError {
-            return
-        }
-        result = operationResult
+    let result = evaluateOperatorExpression(operands: block.operands, operators: block.operators, context: context, output: &output)
+    if result.hasError {
+        return
     }
     
-    context[block.variable] = result
-    output.append("\(block.variable) = \(result)")
+    context[block.variable] = result.value
+    output.append("\(block.variable) = \(result.value)")
 }
 
 func handleIfCase(block: BlockModel, context: inout Context, output: inout [String]) {
@@ -86,16 +79,16 @@ func handlePrintCase(block: BlockModel, context: Context, output: inout [String]
         if block.content.hasPrefix(String(openQuote)) && block.content.hasSuffix(String(closeQuote)) {
             let startIndex = block.content.index(block.content.startIndex, offsetBy: 1)
             let endIndex = block.content.index(block.content.endIndex, offsetBy: -1)
-            let text = String(block.content[startIndex...endIndex])
+            let text = String(block.content[startIndex..<endIndex])
             output.append(text)
             return
         }
     }
     
     let value = evaluateExpression(expression: block.content, context: context)
-    if var variableName = context[block.content] {
+    if context[block.content] != nil {
         output.append("\(block.content) = \(value)")
-    } else if let _ = Int(block.content) {
+    } else if Int(block.content) != nil {
         output.append(String(value))
     } else {
         output.append("Ошибка: переменная '\(block.content)' не определена")
@@ -110,6 +103,97 @@ func evaluateExpression(expression: String, context: Context) -> Int {
     } else {
         return 0
     }
+}
+
+func evaluateOperatorExpression(operands: [BlockModel], operators: [String], context: Context, output: inout [String]) -> (value: Int, hasError: Bool) {
+    var values: [Int] = []
+    var ops = operators
+    
+    for operand in operands {
+        let value = evaluateExpression(expression: operand.content, context: context)
+        values.append(value)
+    }
+    
+    if ops.isEmpty && values.count == 1 {
+        return (values[0], false)
+    }
+    
+    if ops.count < values.count - 1 {
+        while ops.count < values.count - 1 {
+            ops.append("+")
+        }
+    } else if ops.count > values.count - 1 {
+        ops = Array(ops.prefix(values.count - 1))
+    }
+    
+    let precedence: [String: Int] = [
+        "+": 1,
+        "Сложить": 1,
+        "-": 1,
+        "Вычесть": 1,
+        "*": 2,
+        "Умножить": 2,
+        "/": 2,
+        "Разделить": 2,
+        "%": 2
+    ]
+    
+    var valueStack: [Int] = []
+    var opStack: [String] = []
+    
+    valueStack.append(values[0])
+    
+    for i in 0..<ops.count {
+        let currentOp = ops[i]
+        let nextValue = values[i + 1]
+        
+        guard precedence[currentOp] != nil else {
+            output.append("Ошибка: неизвестный оператор \(currentOp)")
+            return (0, true)
+        }
+        
+        while !opStack.isEmpty,
+              let lastOp = opStack.last,
+              let lastPrecedence = precedence[lastOp],
+              let currentPrecedence = precedence[currentOp],
+              lastPrecedence >= currentPrecedence {
+            guard let op = opStack.popLast(),
+                  let operand2 = valueStack.popLast(),
+                  let operand1 = valueStack.popLast() else {
+                output.append("Ошибка: некорректное выражение")
+                return (0, true)
+            }
+            let (result, hasError) = performOperation(operand1: operand1, operatorType: op, operand2: operand2, output: &output)
+            if hasError {
+                return (0, true)
+            }
+            valueStack.append(result)
+        }
+        
+        opStack.append(currentOp)
+        valueStack.append(nextValue)
+    }
+    
+    while !opStack.isEmpty {
+        guard let op = opStack.popLast(),
+              let operand2 = valueStack.popLast(),
+              let operand1 = valueStack.popLast() else {
+            output.append("Ошибка: некорректное выражение")
+            return (0, true)
+        }
+        let (result, hasError) = performOperation(operand1: operand1, operatorType: op, operand2: operand2, output: &output)
+        if hasError {
+            return (0, true)
+        }
+        valueStack.append(result)
+    }
+    
+    guard let finalResult = valueStack.first, valueStack.count == 1 else {
+        output.append("Ошибка: некорректное выражение")
+        return (0, true)
+    }
+    
+    return (finalResult, false)
 }
 
 func performOperation(operand1: Int, operatorType: String, operand2: Int, output: inout [String]) -> (result: Int, hasError: Bool) {
