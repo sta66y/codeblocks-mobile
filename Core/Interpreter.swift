@@ -29,8 +29,6 @@ func interpret(blocks: [BlockModel], context: inout Context) -> [String] {
         case .printCase:
             handlePrintCase(block: block, context: context, output: &output)
             i += 1
-        default:
-            i += 1
         }
     }
     return output

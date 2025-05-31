@@ -22,7 +22,6 @@ struct CodeBlocksView: View {
             }
             .navigationTitle("Программа")
             
-            // плюсик
             VStack {
                 Spacer()
                 HStack {
@@ -43,7 +42,7 @@ struct CodeBlocksView: View {
             }
         }
         .sheet(isPresented: $showingBlockSelection) {
-            BlockSelectionSheet(parentBlockId: UUID(uuidString: "00000000-0000-0000-0000-000000000000") ?? UUID(), onSelect: { selectedBlock in
+            BlockSelectionSheet(onSelect: { selectedBlock in
                 let newBlock = BlockModel(
                     name: selectedBlock.name,
                     type: selectedBlock.type,

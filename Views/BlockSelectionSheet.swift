@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct BlockSelectionSheet: View {
-    let parentBlockId: UUID
     let onSelect: (BlockModel) -> Void
     @Environment(\.dismiss) private var dismiss
     

@@ -346,15 +346,4 @@ struct BlockView: View {
         variableUpdateTask = task
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: task)
     }
-
-    private func debounceConditionUpdate() {
-        updateTask?.cancel()
-        let task = DispatchWorkItem {
-            if variableInput != block.content {
-                block.content = variableInput
-            }
-        }
-        updateTask = task
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: task)
-    }
 }

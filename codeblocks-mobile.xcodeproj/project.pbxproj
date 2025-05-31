@@ -14,7 +14,6 @@
 		8E658E4F2DDCE57900AADAF4 /* ResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE466412DDCE1DA003CCE71 /* ResultView.swift */; };
 		8E658E502DDCE57900AADAF4 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE466402DDCE1DA003CCE71 /* MainTabView.swift */; };
 		8E658E512DDCE57900AADAF4 /* BlockWithChildren.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE466392DDCE1DA003CCE71 /* BlockWithChildren.swift */; };
-		8E658E522DDCE57900AADAF4 /* ForBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE4663F2DDCE1DA003CCE71 /* ForBlockView.swift */; };
 		8E658E532DDCE57900AADAF4 /* BlockRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE4663B2DDCE1DA003CCE71 /* BlockRepository.swift */; };
 		8E658E542DDCE57900AADAF4 /* BlockSelectionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE466382DDCE1DA003CCE71 /* BlockSelectionSheet.swift */; };
 		8E658E552DDCE57900AADAF4 /* BlockModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE466372DDCE1DA003CCE71 /* BlockModel.swift */; };
@@ -31,7 +30,6 @@
 		8EE4663B2DDCE1DA003CCE71 /* BlockRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockRepository.swift; sourceTree = "<group>"; };
 		8EE4663D2DDCE1DA003CCE71 /* BlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockView.swift; sourceTree = "<group>"; };
 		8EE4663E2DDCE1DA003CCE71 /* CodeBlocksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeBlocksView.swift; sourceTree = "<group>"; };
-		8EE4663F2DDCE1DA003CCE71 /* ForBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForBlockView.swift; sourceTree = "<group>"; };
 		8EE466402DDCE1DA003CCE71 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		8EE466412DDCE1DA003CCE71 /* ResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultView.swift; sourceTree = "<group>"; };
 		8EE466422DDCE1DA003CCE71 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
@@ -78,7 +76,6 @@
 			children = (
 				8EE4663D2DDCE1DA003CCE71 /* BlockView.swift */,
 				8EE4663E2DDCE1DA003CCE71 /* CodeBlocksView.swift */,
-				8EE4663F2DDCE1DA003CCE71 /* ForBlockView.swift */,
 				8EE466402DDCE1DA003CCE71 /* MainTabView.swift */,
 				8EE466412DDCE1DA003CCE71 /* ResultView.swift */,
 				8EE466422DDCE1DA003CCE71 /* WelcomeView.swift */,
@@ -186,7 +183,6 @@
 				8E658E4F2DDCE57900AADAF4 /* ResultView.swift in Sources */,
 				8E658E502DDCE57900AADAF4 /* MainTabView.swift in Sources */,
 				8E658E512DDCE57900AADAF4 /* BlockWithChildren.swift in Sources */,
-				8E658E522DDCE57900AADAF4 /* ForBlockView.swift in Sources */,
 				8E658E532DDCE57900AADAF4 /* BlockRepository.swift in Sources */,
 				8E658E542DDCE57900AADAF4 /* BlockSelectionSheet.swift in Sources */,
 				8E658E552DDCE57900AADAF4 /* BlockModel.swift in Sources */,

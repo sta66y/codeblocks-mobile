@@ -13,7 +13,7 @@ struct BlockWithChildren: View {
             childBlocksView
         }
         .sheet(isPresented: $showingBlockSelection) {
-            BlockSelectionSheet(parentBlockId: block.id, onSelect: { selectedBlock in
+            BlockSelectionSheet(onSelect: { selectedBlock in
                 let newBlock = BlockModel(
                     name: selectedBlock.name,
                     type: selectedBlock.type,
